@@ -1019,37 +1019,37 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           readOnly: true,
                         ),
                         const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Reminder Before',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: selectedReminderOption,
-                          items:
-                              [
-                                    '15 mins',
-                                    '30 mins',
-                                    '45 mins',
-                                    '60 mins',
-                                    "Don't remind",
-                                  ]
-                                  .map(
-                                    (option) => DropdownMenuItem(
-                                      value: option,
-                                      child: Text(option),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedReminderOption = value;
-                              lg.log(
-                                'LeadsScreen: Selected reminder option: $value',
-                                time: DateTime.now(),
-                              );
-                            });
-                          },
-                        ),
+                        // DropdownButtonFormField<String>(
+                        //   decoration: const InputDecoration(
+                        //     labelText: 'Reminder Before',
+                        //     border: OutlineInputBorder(),
+                        //   ),
+                        //   value: selectedReminderOption,
+                        //   items:
+                        //       [
+                        //             '1 mins',
+                        //             '30 mins',
+                        //             '45 mins',
+                        //             '60 mins',
+                        //             "Don't remind",
+                        //           ]
+                        //           .map(
+                        //             (option) => DropdownMenuItem(
+                        //               value: option,
+                        //               child: Text(option),
+                        //             ),
+                        //           )
+                        //           .toList(),
+                        //   onChanged: (value) {
+                        //     setState(() {
+                        //       selectedReminderOption = value;
+                        //       lg.log(
+                        //         'LeadsScreen: Selected reminder option: $value',
+                        //         time: DateTime.now(),
+                        //       );
+                        //     });
+                        //   },
+                        // ),
                         const SizedBox(height: 16),
                         Center(
                           child: SizedBox(

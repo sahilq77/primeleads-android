@@ -634,7 +634,7 @@ class ReminderNotification {
       Duration reminderDuration;
       bool useDefault = reminderOption == null || reminderOption.isEmpty;
       if (useDefault) {
-        reminderDuration = const Duration(minutes: 30);
+        reminderDuration = const Duration(seconds: 1);
         lg.log(
           'ReminderNotification: Using default reminder duration: 30 minutes',
           time: DateTime.now(),
@@ -642,7 +642,7 @@ class ReminderNotification {
       } else {
         switch (reminderOption) {
           case '15 mins':
-            reminderDuration = const Duration(minutes: 15);
+            reminderDuration = const Duration(minutes: 1);
             break;
           case '30 mins':
             reminderDuration = const Duration(minutes: 30);
@@ -657,7 +657,7 @@ class ReminderNotification {
             reminderDuration = const Duration(minutes: 1);
             break;
           default:
-            reminderDuration = const Duration(minutes: 30);
+            reminderDuration = const Duration(seconds: 1);
             useDefault = true;
             lg.log(
               'ReminderNotification: Invalid reminder option "$reminderOption", falling back to default 30 minutes',
@@ -798,7 +798,7 @@ class ReminderNotification {
             id: int.parse(leadId),
             title: 'Reminder: Follow-up with $leadName',
             body:
-                'Your follow-up is in ${useDefault ? '30 minutes' : reminderOption} ($reminderType). Scheduled for $reminderDateString at $reminderTimeString.',
+                'Your follow-up is Scheduled for $reminderDateString at $reminderTimeString.',
             scheduledDate: reminderTime,
           );
           lg.log(

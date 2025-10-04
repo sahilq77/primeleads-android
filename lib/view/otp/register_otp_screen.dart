@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -8,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:prime_leads/controller/login/login_controller.dart';
 import 'package:prime_leads/controller/register/register_otp/register_send_otp_controller.dart';
 import 'package:prime_leads/controller/register/register_otp/register_verify_otp_controller.dart';
-
 import '../../controller/login/login_send_otp_controller.dart';
 import '../../notification_services .dart';
 import '../../utility/app_colors.dart';
@@ -72,6 +70,31 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
     return _otpControllers.map((controller) => controller.text).join();
   }
 
+  // Handle OTP paste
+  Future<void> _handlePaste() async {
+    final clipboardData = await Clipboard.getData('text/plain');
+    if (clipboardData != null && clipboardData.text != null) {
+      final pastedText = clipboardData.text!.trim();
+      if (pastedText.length == 6 && RegExp(r'^\d{6}$').hasMatch(pastedText)) {
+        for (int i = 0; i < 6; i++) {
+          _otpControllers[i].text = pastedText[i];
+        }
+        // Clear focus and move to the last field
+        _focusNodes.forEach((node) => node.unfocus());
+        FocusScope.of(context).requestFocus(_focusNodes[5]);
+        setState(() {});
+      } else {
+        Get.snackbar(
+          'Error',
+          'Please paste a valid 6-digit OTP',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -129,59 +152,71 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
               children: List.generate(6, (index) {
                 return SizedBox(
                   width: 50,
-                  child: TextField(
-                    controller: _otpControllers[index],
-                    focusNode: _focusNodes[index],
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    maxLength: 1,
-                    decoration: InputDecoration(
-                      counterText: '',
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      hintText: "-",
-                      hintStyle: TextStyle(
-                        color: const Color(0xFFD9D9D9),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: AppColors.primary,
-                          width: 2,
+                  child: GestureDetector(
+                    onLongPress: _handlePaste, // Handle paste on long press
+                    child: TextField(
+                      controller: _otpControllers[index],
+                      focusNode: _focusNodes[index],
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      maxLength: 1,
+                      decoration: InputDecoration(
+                        counterText: '',
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        hintText: "-",
+                        hintStyle: TextStyle(
+                          color: const Color(0xFFD9D9D9),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red, width: 2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red, width: 2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red, width: 2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(1),
+                      ],
+                      onChanged: (value) {
+                        if (value.length == 1 && index < 5) {
+                          _focusNodes[index].unfocus();
+                          FocusScope.of(
+                            context,
+                          ).requestFocus(_focusNodes[index + 1]);
+                        }
+                        if (value.isEmpty && index > 0) {
+                          _focusNodes[index].unfocus();
+                          FocusScope.of(
+                            context,
+                          ).requestFocus(_focusNodes[index - 1]);
+                        }
+                      },
+                      onTap: () {
+                        // Select all text in the field to allow replacing with paste
+                        _otpControllers[index].selection = TextSelection(
+                          baseOffset: 0,
+                          extentOffset: _otpControllers[index].text.length,
+                        );
+                      },
+                      onEditingComplete: () {
+                        // Handle paste when the user submits (e.g., "Done" on keyboard)
+                        _handlePaste();
+                      },
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(
-                        1,
-                      ), // Restrict input to 10 digits
-                    ],
-                    onChanged: (value) {
-                      if (value.length == 1 && index < 5) {
-                        _focusNodes[index].unfocus();
-                        FocusScope.of(
-                          context,
-                        ).requestFocus(_focusNodes[index + 1]);
-                      }
-                      if (value.isEmpty && index > 0) {
-                        _focusNodes[index].unfocus();
-                        FocusScope.of(
-                          context,
-                        ).requestFocus(_focusNodes[index - 1]);
-                      }
-                    },
                   ),
                 );
               }),
@@ -204,7 +239,6 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
                     //   AppRoutes.category,
                     //   arguments: {
                     //     "name": name,
-
                     //     "state": state,
                     //     "city": city,
                     //     "mobile": mobile,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -9,6 +11,7 @@ import 'package:prime_leads/utility/app_colors.dart';
 import 'package:prime_leads/utility/app_images.dart';
 import 'package:prime_leads/utility/app_routes.dart';
 import 'package:prime_leads/utility/app_utility.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -292,6 +295,26 @@ class ProfileScreen extends StatelessWidget {
                     width: double.infinity,
                     color: Color(0xFFEDEDED),
                   ),
+                  // New Share App ListTile
+                  ListTile(
+                    leading: Icon(
+                      Icons.share,
+                      color: AppColors.grey,
+                      // height: 25,
+                      // width: 25,
+                    ),
+                    title: Text('Share App'),
+                    trailing: Icon(Icons.chevron_right, size: 30),
+                    onTap: ()async {
+                  await   _shareApp(context);
+                    },
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 1,
+                    width: double.infinity,
+                    color: Color(0xFFEDEDED),
+                  ),
                   ListTile(
                     leading: SvgPicture.asset(
                       AppImages.logoutIcon,
@@ -345,6 +368,41 @@ class ProfileScreen extends StatelessWidget {
         bottomNavigationBar: CustomBottomBar(),
       ),
     );
+  }
+
+    Future<void> _shareApp(BuildContext context) async {
+    try {
+      // Define the app name and links for both platforms
+      const String appName = 'Prime Leads';
+      const String androidAppUrl =
+          'https://play.google.com/store/apps/details?id=com.quick.prime_leads';
+      const String iosAppUrl = 'https://apps.apple.com/app/your-app-id'; // Replace with actual App Store link
+      const String fallbackUrl = 'https://yourwebsite.com'; // Replace with your website if no app store link
+
+      // Determine the platform to select the appropriate link
+      final String shareUrl = Platform.isAndroid ? androidAppUrl : iosAppUrl;
+
+      // Customize the share message
+      final String shareText = '$appName: Check out this amazing app! Download it now: $shareUrl';
+
+      // Use Share.share for sharing text with the share sheet
+      await Share.share(
+        shareText,
+        subject: 'Share $appName App',
+        sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+      );
+    } catch (e, stackTrace) {
+      // Log the error for debugging
+      debugPrint('Error sharing app: $e\nStackTrace: $stackTrace');
+
+      // Show a more descriptive error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to share the app: ${e.toString()}'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   _logoutDialog(BuildContext context, ProfileController controller) {
@@ -560,8 +618,7 @@ class ProfileScreen extends StatelessWidget {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(color: Colors.grey),
+                                      color: AppColors.primaryTeal,
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Center(
@@ -569,7 +626,7 @@ class ProfileScreen extends StatelessWidget {
                                         'Cancel',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
-                                          color: const Color(0xFF7A7773),
+                                          color: Colors.white,
                                           fontSize: 16,
                                         ),
                                       ),
@@ -611,7 +668,8 @@ class ProfileScreen extends StatelessWidget {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppColors.primaryTeal,
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.grey),
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Center(
@@ -619,7 +677,7 @@ class ProfileScreen extends StatelessWidget {
                                         'Delete',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.white,
+                                          color: const Color(0xFF7A7773),
                                           fontSize: 16,
                                         ),
                                       ),
@@ -627,6 +685,56 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                 ),
                               ),
+
+                              // Expanded(
+                              //   child: GestureDetector(
+                              //     onTap: () {
+                              //       Get.back();
+                              //       final deleteController = Get.put(
+                              //         DeleteUserController(),
+                              //       );
+                              //       deleteController
+                              //           .delteUser(context: context)
+                              //           .then((value) {
+                              //             AppUtility.clearUserInfo().then((_) {
+                              //               Get.offAllNamed(AppRoutes.login);
+                              //             });
+                              //           })
+                              //           .catchError((error) {
+                              //             ScaffoldMessenger.of(
+                              //               context,
+                              //             ).showSnackBar(
+                              //               SnackBar(
+                              //                 content: Text(
+                              //                   'Error deleting user: $error',
+                              //                 ),
+                              //               ),
+                              //             );
+                              //           });
+                              //     },
+                              //     child: Container(
+                              //       height: 50,
+                              //       padding: EdgeInsets.symmetric(
+                              //         horizontal: 16,
+                              //         vertical: 8,
+                              //       ),
+                              //       decoration: BoxDecoration(
+                              //         color: AppColors.primaryTeal,
+                              //         borderRadius: BorderRadius.circular(5),
+                              //       ),
+                              //       child: Center(
+                              //         child: Text(
+                              //           'Delete',
+                              //           style: TextStyle(
+                              //             fontWeight: FontWeight.w600,
+                              //             color: Colors.white,
+                              //             fontSize: 16,
+                              //           ),
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ],

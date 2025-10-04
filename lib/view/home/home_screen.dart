@@ -586,10 +586,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             'Smarter leads, Better business.',
-            style: TextStyle(
-              color: AppColors.grey,
+            style: GoogleFonts.poppins(
+              color: AppColors.textDark,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: screenHeight * 0.01),
@@ -698,10 +698,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             'Why Prime Leads?',
-            style: TextStyle(
-              color: AppColors.grey,
+            style: GoogleFonts.poppins(
+              color: AppColors.textDark,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: screenHeight * 0.01),
@@ -768,10 +768,10 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             'Testimonial',
-            style: TextStyle(
-              color: AppColors.grey,
+            style: GoogleFonts.poppins(
+              color: AppColors.textDark,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: screenHeight * 0.01),

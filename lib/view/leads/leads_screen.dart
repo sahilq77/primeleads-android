@@ -49,7 +49,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   void initState() {
     super.initState();
     ReminderNotification().init();
-    _requestPermissions();
+    // _requestPermissions();
     _dateController.text =
         "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}";
     _reminderdateController.text =

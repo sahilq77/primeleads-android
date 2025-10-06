@@ -1180,23 +1180,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppColors.white,
                 shape: BoxShape.circle,
               ),
-              child: Center(
-                child: CachedNetworkImage(
-                  imageUrl: icon,
-                  fit: BoxFit.cover,
-                  width: 13,
-                  height: 13,
-                  placeholder:
-                      (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                  errorWidget:
-                      (context, url, error) => const Center(
-                        child: Icon(
-                          Icons.error,
-                          color: AppColors.error,
-                          size: 13,
+              child: ClipOval(
+                child: Center(
+                  child: CachedNetworkImage(
+                    imageUrl: icon,
+                    fit:
+                        BoxFit
+                            .cover, // Use BoxFit.cover to maintain aspect ratio, or BoxFit.fill to stretch
+                    width: 13, // Match container size
+                    height: 13, // Match container size
+                    placeholder:
+                        (context, url) =>
+                            const Center(child: CircularProgressIndicator()),
+                    errorWidget:
+                        (context, url, error) => const Center(
+                          child: Icon(
+                            Icons.error,
+                            color: AppColors.error,
+                            size: 13,
+                          ),
                         ),
-                      ),
+                  ),
                 ),
               ),
             ),

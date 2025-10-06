@@ -319,6 +319,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         profileController.packageName.value.isNotEmpty
                             ? profileController.packageName.value
                             : packageName,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -457,32 +458,39 @@ class SubscriptionCard extends StatelessWidget {
                                 color: isSelected ? color : AppColors.grey,
                               ),
                             ),
-                            child: CachedNetworkImage(
-                              imageUrl: package.image,
-                              fit: BoxFit.cover,
-                              width: 20,
-                              height: 20,
-                              placeholder:
-                                  (context, url) => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                              errorWidget:
-                                  (context, url, error) => const Center(
-                                    child: Icon(
-                                      Icons.error,
-                                      color: AppColors.error,
-                                      size: 20,
+                            child: ClipOval(
+                              // Clip the image to a circular shape
+                              child: CachedNetworkImage(
+                                imageUrl: package.image,
+                                fit:
+                                    BoxFit
+                                        .cover, // Ensures the image covers the entire circle
+                                width: 20,
+                                height: 20,
+                                placeholder:
+                                    (context, url) => const Center(
+                                      child: CircularProgressIndicator(),
                                     ),
-                                  ),
+                                errorWidget:
+                                    (context, url, error) => const Center(
+                                      child: Icon(
+                                        Icons.error,
+                                        color: AppColors.error,
+                                        size: 20,
+                                      ),
+                                    ),
+                              ),
                             ),
                           ),
                           SizedBox(width: 4),
-                          Text(
-                            package.packageName,
-                            style: TextStyle(
-                              color: isSelected ? color : AppColors.textDark,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Flexible(
+                            child: Text(
+                              package.packageName,
+                              style: TextStyle(
+                                color: isSelected ? color : AppColors.textDark,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],

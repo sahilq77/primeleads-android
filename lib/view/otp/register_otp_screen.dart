@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pinput/pinput.dart';
 import 'package:prime_leads/controller/login/login_controller.dart';
 import 'package:prime_leads/controller/register/register_otp/register_send_otp_controller.dart';
 import 'package:prime_leads/controller/register/register_otp/register_verify_otp_controller.dart';
@@ -22,11 +23,7 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
   final loginControlller = Get.put(LoginController());
   final registerSendOtpControlller = Get.put(RegisterSendOtpController());
   final registerVerifyOtpControlller = Get.put(RegisterVerifyOtpController());
-  final List<TextEditingController> _otpControllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final TextEditingController _otpController = TextEditingController();
   int _resendTimer = 59;
   late Timer _timer;
   String? pushtoken;
@@ -61,44 +58,44 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
   @override
   void dispose() {
     _timer.cancel();
-    _otpControllers.forEach((controller) => controller.dispose());
-    _focusNodes.forEach((node) => node.dispose());
+    _otpController.dispose();
     super.dispose();
-  }
-
-  String _getOtp() {
-    return _otpControllers.map((controller) => controller.text).join();
-  }
-
-  // Handle OTP paste
-  Future<void> _handlePaste() async {
-    final clipboardData = await Clipboard.getData('text/plain');
-    if (clipboardData != null && clipboardData.text != null) {
-      final pastedText = clipboardData.text!.trim();
-      if (pastedText.length == 6 && RegExp(r'^\d{6}$').hasMatch(pastedText)) {
-        for (int i = 0; i < 6; i++) {
-          _otpControllers[i].text = pastedText[i];
-        }
-        // Clear focus and move to the last field
-        _focusNodes.forEach((node) => node.unfocus());
-        FocusScope.of(context).requestFocus(_focusNodes[5]);
-        setState(() {});
-      } else {
-        Get.snackbar(
-          'Error',
-          'Please paste a valid 6-digit OTP',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    // Define Pinput theme
+    final defaultPinTheme = PinTheme(
+      width: 50,
+      height: 50,
+      textStyle: GoogleFonts.poppins(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textDark,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    final errorPinTheme = defaultPinTheme.copyWith(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.red, width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
@@ -147,86 +144,50 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
               ],
             ),
             SizedBox(height: screenHeight * 0.03),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (index) {
-                return SizedBox(
-                  width: 50,
-                  child: GestureDetector(
-                    onLongPress: _handlePaste, // Handle paste on long press
-                    child: TextField(
-                      controller: _otpControllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      decoration: InputDecoration(
-                        counterText: '',
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        hintText: "-",
-                        hintStyle: TextStyle(
-                          color: const Color(0xFFD9D9D9),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: AppColors.primary,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red, width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(1),
-                      ],
-                      onChanged: (value) {
-                        if (value.length == 1 && index < 5) {
-                          _focusNodes[index].unfocus();
-                          FocusScope.of(
-                            context,
-                          ).requestFocus(_focusNodes[index + 1]);
-                        }
-                        if (value.isEmpty && index > 0) {
-                          _focusNodes[index].unfocus();
-                          FocusScope.of(
-                            context,
-                          ).requestFocus(_focusNodes[index - 1]);
-                        }
-                      },
-                      onTap: () {
-                        // Select all text in the field to allow replacing with paste
-                        _otpControllers[index].selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: _otpControllers[index].text.length,
-                        );
-                      },
-                      onEditingComplete: () {
-                        // Handle paste when the user submits (e.g., "Done" on keyboard)
-                        _handlePaste();
-                      },
-                    ),
-                  ),
-                );
-              }),
+            Pinput(
+              controller: _otpController,
+              length: 6,
+              defaultPinTheme: defaultPinTheme,
+              focusedPinTheme: focusedPinTheme,
+              errorPinTheme: errorPinTheme,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (value) {
+                // Optional: Handle onChanged if needed
+              },
+              // onCompleted: (pin) {
+              //   if (pin.length == 6) {
+              //     final args = Get.arguments as Map<String, dynamic>?;
+              //     final mobile = args?['mobile'] as String?;
+              //     registerVerifyOtpControlller.verifyOTP(
+              //       context: context,
+              //       mobileNumber: mobile,
+              //       otp: pin,
+              //     );
+              //   }
+              // },
+              isCursorAnimationEnabled: true,
+              showCursor: true,
+              // onClipboardFound: (value) {
+              //   if (value.length == 6 && RegExp(r'^\d{6}$').hasMatch(value)) {
+              //     _otpController.text = value;
+              //   } else {
+              //     Get.snackbar(
+              //       'Error',
+              //       'Please paste a valid 6-digit OTP',
+              //       snackPosition: SnackPosition.TOP,
+              //       backgroundColor: Colors.red,
+              //       colorText: Colors.white,
+              //     );
+              //   }
+              // },
             ),
             SizedBox(height: screenHeight * 0.04),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  String otp = _getOtp();
+                  String otp = _otpController.text;
                   if (otp.length == 6) {
                     final args = Get.arguments as Map<String, dynamic>?;
                     final mobile = args?['mobile'] as String?;
@@ -278,7 +239,6 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
                     _resendTimer > 0
                         ? null
                         : () {
-                          // Add resend OTP logic here
                           setState(() {
                             _resendTimer = 59;
                             _startTimer();

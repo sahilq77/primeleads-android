@@ -305,8 +305,28 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     title: Text('Share App'),
                     trailing: Icon(Icons.chevron_right, size: 30),
-                    onTap: ()async {
-                  await   _shareApp(context);
+                    onTap: () async {
+                      await _shareApp(context);
+                    },
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 1,
+                    width: double.infinity,
+                    color: Color(0xFFEDEDED),
+                  ),
+                  // New Share App ListTile
+                  ListTile(
+                    leading: Icon(
+                      Icons.delete_outline,
+                      color: AppColors.grey,
+                      // height: 25,
+                      // width: 25,
+                    ),
+                    title: Text('Delete Your Account'),
+                    trailing: Icon(Icons.chevron_right, size: 30),
+                    onTap: () {
+                      _deleteAccountDialog(context);
                     },
                   ),
                   Container(
@@ -327,39 +347,39 @@ class ProfileScreen extends StatelessWidget {
                       _logoutDialog(context, controller);
                     },
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      _deleteAccountDialog(context);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.symmetric(
-                        horizontal: screenWidth * 0.25,
-                        vertical: screenHeight * 0.02,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            color: Colors.black,
-                            size: 15,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Delete Your Account',
-                            style: TextStyle(color: Colors.black, fontSize: 10),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     _deleteAccountDialog(context);
+                  //   },
+                  //   child: Container(
+                  //     margin: EdgeInsets.symmetric(
+                  //       horizontal: screenWidth * 0.25,
+                  //       vertical: screenHeight * 0.02,
+                  //     ),
+                  //     decoration: BoxDecoration(
+                  //       border: Border.all(color: Colors.black),
+                  //       borderRadius: BorderRadius.circular(6),
+                  //     ),
+                  //     padding: EdgeInsets.symmetric(
+                  //       horizontal: 12,
+                  //       vertical: 8,
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         Icon(
+                  //           Icons.delete_outline,
+                  //           color: Colors.black,
+                  //           size: 15,
+                  //         ),
+                  //         SizedBox(width: 8),
+                  //         Text(
+                  //           'Delete Your Account',
+                  //           style: TextStyle(color: Colors.black, fontSize: 10),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -370,26 +390,34 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-    Future<void> _shareApp(BuildContext context) async {
+  Future<void> _shareApp(BuildContext context) async {
     try {
       // Define the app name and links for both platforms
       const String appName = 'Prime Leads';
       const String androidAppUrl =
           'https://play.google.com/store/apps/details?id=com.quick.prime_leads';
-      const String iosAppUrl = 'https://apps.apple.com/app/your-app-id'; // Replace with actual App Store link
-      const String fallbackUrl = 'https://yourwebsite.com'; // Replace with your website if no app store link
+      const String iosAppUrl =
+          'https://apps.apple.com/app/your-app-id'; // Replace with actual App Store link
+      const String fallbackUrl =
+          'https://yourwebsite.com'; // Replace with your website if no app store link
 
       // Determine the platform to select the appropriate link
       final String shareUrl = Platform.isAndroid ? androidAppUrl : iosAppUrl;
 
       // Customize the share message
-      final String shareText = '$appName: Check out this amazing app! Download it now: $shareUrl';
+      final String shareText =
+          '$appName: Check out this amazing app! Download it now: $shareUrl';
 
       // Use Share.share for sharing text with the share sheet
       await Share.share(
         shareText,
         subject: 'Share $appName App',
-        sharePositionOrigin: Rect.fromLTWH(0, 0, MediaQuery.of(context).size.width, MediaQuery.of(context).size.height / 2),
+        sharePositionOrigin: Rect.fromLTWH(
+          0,
+          0,
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height / 2,
+        ),
       );
     } catch (e, stackTrace) {
       // Log the error for debugging

@@ -184,51 +184,106 @@ class _HomeScreenState extends State<HomeScreen> {
               }
 
               if (leadsController.leadsList.isEmpty) {
-                return const SizedBox.shrink();
+                return Container(
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFFFFC621),
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                    shape: BoxShape.rectangle,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        AppImages.leadclockIcon,
+                        height: 25,
+                        width: 25,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Buy Package',
+                        style: TextStyle(
+                          color: const Color(
+                            0xFFFF2602,
+                          ), // Fixed invalid color code
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               }
 
               final remainingLeads = leadsController.remainingLeads.value;
-              if (remainingLeads.isEmpty) {
-                return const SizedBox.shrink();
+              if (remainingLeads == "0") {
+                return Container(
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    border: Border.all(
+                      width: 2,
+                      color: const Color(0xFFFFC621),
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                    shape: BoxShape.rectangle,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        AppImages.leadclockIcon,
+                        height: 25,
+                        width: 25,
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Package Expird!',
+                        style: TextStyle(
+                          color: const Color(
+                            0xFFFF2602,
+                          ), // Fixed invalid color code
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               }
 
               int count = int.tryParse(remainingLeads) ?? 0;
               print("Building with Remaining Leads: $count");
-              return count < 51
-                  ? Container(
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      border: Border.all(
-                        width: 2,
-                        color: const Color(0xFFFFC621),
+              return Container(
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  border: Border.all(width: 2, color: const Color(0xFFFFC621)),
+                  borderRadius: BorderRadius.circular(5),
+                  shape: BoxShape.rectangle,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(AppImages.leadclockIcon, height: 25, width: 25),
+                    SizedBox(width: 10),
+                    Text(
+                      '$count Leads \nRemaining!',
+                      style: TextStyle(
+                        color: const Color(
+                          0xFFFF2602,
+                        ), // Fixed invalid color code
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
-                      borderRadius: BorderRadius.circular(5),
-                      shape: BoxShape.rectangle,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          AppImages.leadclockIcon,
-                          height: 25,
-                          width: 25,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          '$count Leads \nRemaining!',
-                          style: TextStyle(
-                            color: const Color(
-                              0xFFFF2602,
-                            ), // Fixed invalid color code
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                  : SizedBox.shrink();
+                  ],
+                ),
+              );
             }),
 
             SizedBox(width: 10),

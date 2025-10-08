@@ -120,7 +120,7 @@ class CustomBottomBar extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.symmetric(
               vertical: verticalPadding,
-              horizontal: horizontalPadding,
+              //  horizontal: horizontalPadding,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

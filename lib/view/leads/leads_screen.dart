@@ -548,16 +548,17 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           elevation: 1,
                           child: Padding(
                             padding: EdgeInsets.all(10.0),
-                            child: Row(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  controller.recivedLeads.value.toString() ??
-                                      "0",
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                  controller.recivedLeads.isNotEmpty
+                                      ? controller.totalLeads.value
+                                      : "0",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.primaryTeal,
                                   ),
@@ -565,8 +566,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                 SizedBox(width: 8.0),
                                 Text(
                                   "Received Leads",
-                                  style: TextStyle(
-                                    fontSize: 14,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.black87,
                                   ),
@@ -591,15 +592,17 @@ class _LeadsScreenState extends State<LeadsScreen> {
                           elevation: 1,
                           child: Padding(
                             padding: EdgeInsets.all(10.0),
-                            child: Row(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  controller.totalLeads.value ?? "0",
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                  controller.totalLeads.isNotEmpty
+                                      ? controller.totalLeads.value
+                                      : "0",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.primary,
                                   ),
@@ -607,8 +610,8 @@ class _LeadsScreenState extends State<LeadsScreen> {
                                 SizedBox(width: 8.0),
                                 Text(
                                   "Total Leads",
-                                  style: TextStyle(
-                                    fontSize: 14,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.black87,
                                   ),
@@ -833,6 +836,104 @@ class _LeadsScreenState extends State<LeadsScreen> {
         bottomNavigationBar: const CustomBottomBar(),
       ),
     );
+  }
+
+  // Helper method to build the lead cards
+  List<Widget> _buildLeadCards(controller) {
+    return [
+      Expanded(
+        child: SizedBox(
+          width: double.infinity,
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+              side: const BorderSide(color: AppColors.borderColor),
+            ),
+            color: const Color(0xFFF5F5F5),
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    controller.recivedLeads.isNotEmpty
+                        ? controller.totalLeads.value
+                        : "0",
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryTeal,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Flexible(
+                    child: Text(
+                      "Received Leads",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      Expanded(
+        child: SizedBox(
+          width: double.infinity,
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+              side: const BorderSide(color: AppColors.borderColor),
+            ),
+            color: const Color(0xFFF5F5F5),
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    controller.totalLeads.isNotEmpty
+                        ? controller.totalLeads.value
+                        : "0",
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Flexible(
+                    child: Text(
+                      "Total Leads",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildDetailRow(String label, String value, double fontSize) {

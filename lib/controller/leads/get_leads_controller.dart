@@ -87,6 +87,9 @@ class GetLeadsController extends GetxController {
           }
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
+            totalLeads.value = leads!.first.totalLeads.toString();
+            recivedLeads.value = leads!.first.receivedLeads.toString();
+            remainingLeads.value = leads!.first.remainLeads.toString();
             for (var lead in leads!) {
               if (!leadsList.any(
                 (existingLead) => existingLead.leadId == lead.leadId,
@@ -113,9 +116,6 @@ class GetLeadsController extends GetxController {
                     state: lead.state,
                   ),
                 );
-                totalLeads.value = lead.totalLeads.toString();
-                recivedLeads.value = lead.receivedLeads.toString();
-                remainingLeads.value = lead.remainLeads.toString();
               }
             }
 

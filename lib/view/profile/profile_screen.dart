@@ -395,7 +395,7 @@ class ProfileScreen extends StatelessWidget {
       // Define the app name and links for both platforms
       const String appName = 'Prime Leads';
       const String androidAppUrl =
-          'https://play.google.com/store/apps/details?id=com.quick.prime_leads';
+          'https://play.google.com/store/apps/details?id=com.quick.primeleads';
       const String iosAppUrl =
           'https://apps.apple.com/app/your-app-id'; // Replace with actual App Store link
       const String fallbackUrl =

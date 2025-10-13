@@ -239,6 +239,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final ScrollController scrollController = ScrollController();
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -555,7 +556,7 @@ class _LeadsScreenState extends State<LeadsScreen> {
                               children: [
                                 Text(
                                   controller.recivedLeads.isNotEmpty
-                                      ? controller.totalLeads.value
+                                      ? controller.recivedLeads.value
                                       : "0",
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
@@ -631,10 +632,76 @@ class _LeadsScreenState extends State<LeadsScreen> {
               child: RefreshIndicator(
                 onRefresh: () => controller.refreshleadsList(context: context),
                 child: Obx(() {
-                  if (controller.isLoading.value) {
+                  if (controller.isLoading.value &&
+                      controller.leadsList.isEmpty) {
                     return CustomShimmer(
                       screenWidth: screenWidth,
                       screenHeight: MediaQuery.of(context).size.height,
+                    );
+                  }
+                  if (controller.leadsList.isEmpty &&
+                      profileController.userProfileList.isNotEmpty &&
+                      profileController
+                              .userProfileList
+                              .first
+                              .hasReceivedLeads ==
+                          "0") {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Card(
+                        elevation: 8.0, // Subtle shadow for depth
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            12.0,
+                          ), // Rounded corners
+                        ),
+                        color: Colors.white, // Clean white background
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0), // Inner padding
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min, // Fit content
+                            children: [
+                              // Icon for visual appeal
+                              Center(
+                                child: SizedBox(
+                                  height: screenHeight * 0.10,
+                                  child: Image.asset(AppImages.logoP),
+                                ),
+                              ),
+                              SizedBox(height: 12.0), // Spacing
+                              // Styled Text
+                              Text(
+                                "Subscribe Now & Receive Leads in Just Next Day!",
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  fontFamily: 'Roboto', // Modern font
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 8.0),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  minimumSize: Size(double.infinity, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  await controller.refreshleadsList(
+                                    context: context,
+                                    showLoading: true,
+                                  );
+                                },
+                                child: Text("Refresh"),
+                              ),
+                              // Additional description
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   }
                   return ListView.builder(

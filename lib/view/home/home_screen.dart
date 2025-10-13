@@ -179,7 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             Obx(() {
               if (leadsController.isLoading.value &&
-                  leadsController.leadsList.isEmpty) {
+                  profileController.isLoading.value &&
+                  leadsController.leadsList.isEmpty &&
+                  profileController.userProfileList.isEmpty) {
                 return SizedBox.shrink();
               }
 
@@ -218,7 +220,46 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }
-
+              // if (profileController
+              //     .userProfileList
+              //     .first
+              //     .subscriptionDetail!
+              //     .noOfLeads!
+              //     .isNotEmpty) {
+              //   return Container(
+              //     padding: EdgeInsets.all(5),
+              //     decoration: BoxDecoration(
+              //       color: AppColors.white,
+              //       border: Border.all(
+              //         width: 2,
+              //         color: const Color(0xFFFFC621),
+              //       ),
+              //       borderRadius: BorderRadius.circular(5),
+              //       shape: BoxShape.rectangle,
+              //     ),
+              //     child: Row(
+              //       mainAxisAlignment: MainAxisAlignment.center,
+              //       children: [
+              //         Image.asset(
+              //           AppImages.leadclockIcon,
+              //           height: 25,
+              //           width: 25,
+              //         ),
+              //         SizedBox(width: 10),
+              //         Text(
+              //           '${profileController.userProfileList.first.subscriptionDetail!.noOfLeads} Leads \nRemaining!',
+              //           style: TextStyle(
+              //             color: const Color(
+              //               0xFFFF2602,
+              //             ), // Fixed invalid color code
+              //             fontSize: 10,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   );
+              // }
               final remainingLeads = leadsController.remainingLeads.value;
               if (remainingLeads == "0") {
                 return Container(
@@ -242,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(width: 10),
                       Text(
-                        'Package Expird!',
+                        'Buy Package!',
                         style: TextStyle(
                           color: const Color(
                             0xFFFF2602,
@@ -1031,7 +1072,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(10.0),
         child: CarouselSlider(
           options: CarouselOptions(
-            height: 200,
+            // height: 200,
             autoPlay: true,
             enlargeCenterPage: true,
             viewportFraction: 1.0,
@@ -1052,9 +1093,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
                           imageUrl: imagePath.bannerImage,
-                          fit: BoxFit.cover,
+                          fit: BoxFit.fitWidth,
                           width: double.infinity,
-                          height: 200,
+                          //height: 200,
                           placeholder:
                               (context, url) => const Center(
                                 child: CircularProgressIndicator(),

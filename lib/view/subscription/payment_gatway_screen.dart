@@ -225,8 +225,17 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     _log('[RazorpayGateway]   message: ${response.message}');
     _log('[RazorpayGateway] Full Error Response: ${response.error}');
 
-    await _callSetPaymentApi("0");
+    // Call _callSetPaymentApi with paymentStatus "0" for failed payments
+    bool apiSuccess = await _callSetPaymentApi("0");
+
     _showErrorSnackBar(response.message ?? "Payment failed");
+
+    if (!apiSuccess) {
+      _log('[RazorpayGateway] setPayment API call failed for paymentStatus: 0');
+      _showErrorSnackBar(
+        'Payment failed and status update failed. Contact support if needed.',
+      );
+    }
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {

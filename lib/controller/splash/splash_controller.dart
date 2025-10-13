@@ -34,9 +34,9 @@ class SplashController extends GetxController {
       permissionsToRequest.add(Permission.notification);
     }
     if (Platform.isAndroid && isAndroid13OrAbove) {
-      if (await Permission.photos.isDenied) {
-        permissionsToRequest.add(Permission.photos); // For READ_MEDIA_IMAGES
-      }
+      // if (await Permission.photos.isDenied) {
+      //   permissionsToRequest.add(Permission.photos); // For READ_MEDIA_IMAGES
+      // }
     } else if (Platform.isAndroid && await Permission.storage.isDenied) {
       permissionsToRequest.add(
         Permission.storage,

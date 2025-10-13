@@ -140,20 +140,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             controller.subcriptionsList.isEmpty) {
                           return ShimmerSubscriptionCard();
                         }
-                        if (controller.subcriptionsList.isEmpty) {
-                          return NoDataScreen();
-                        }
+
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: NeverScrollableScrollPhysics(),
                           itemCount: controller.subcriptionsList.length,
                           itemBuilder: (context, int index) {
                             final package = controller.subcriptionsList[index];
-                            return SubscriptionCard(
-                              package: package,
-                              isSelected: _selectedIndex == index,
-                              onTap: () => _selectCard(index),
-                            );
+                            {
+                              if (controller.subcriptionsList.isEmpty) {
+                                return NoDataScreen();
+                              }
+                              return SubscriptionCard(
+                                package: package,
+                                isSelected: _selectedIndex == index,
+                                onTap: () => _selectCard(index),
+                              );
+                            }
                           },
                         );
                       }),

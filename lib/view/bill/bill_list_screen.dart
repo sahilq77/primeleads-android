@@ -443,11 +443,21 @@ class _BillListScreenState extends State<BillListScreen> {
                             ),
                             SizedBox(width: 8),
                             Text(
-                              ':  ${pay.packageName}',
+                              ': ',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.primaryTeal,
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                '${pay.packageName}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.primaryTeal,
+                                ),
                               ),
                             ),
                           ],

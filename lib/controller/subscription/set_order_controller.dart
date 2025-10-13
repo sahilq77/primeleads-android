@@ -32,7 +32,7 @@ class SetOrderController extends GetxController {
         "user_id": AppUtility.userID,
         "sector_id": AppUtility.sectorID,
       };
-
+      setOrderList.clear();
       isLoading.value = true;
 
       List<GetSetOrderResponse>? response =

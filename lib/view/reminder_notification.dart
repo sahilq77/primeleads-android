@@ -597,7 +597,6 @@ class ReminderNotification {
     }
   }
 
-  // Schedule reminders for all leads with a specific reminder option
   Future<void> scheduleRemindersForAllBookings(String? reminderOption) async {
     try {
       lg.log(
@@ -673,6 +672,9 @@ class ReminderNotification {
       final DateTime now = DateTime.now();
       final DateFormat dateFormatIndian = DateFormat('dd-MM-yyyy');
       final DateFormat dateFormatISO = DateFormat('yyyy-MM-dd');
+      final DateFormat time12HourFormat = DateFormat(
+        'h:mm a',
+      ); // 12-hour format
 
       for (var reminder in reminders) {
         try {
@@ -793,12 +795,17 @@ class ReminderNotification {
             time: DateTime.now(),
           );
 
+          // Convert time to 12-hour format for display
+          final String formattedTime12Hour = time12HourFormat.format(
+            followUpTimeParsed,
+          );
+
           final String reminderType = useDefault ? 'default' : 'custom';
           await scheduleNotification(
             id: int.parse(leadId),
             title: 'Reminder: Follow-up with $leadName',
             body:
-                'Your follow-up is Scheduled for $reminderDateString at $reminderTimeString.',
+                'Your follow-up is Scheduled for $reminderDateString at $formattedTime12Hour.',
             scheduledDate: reminderTime,
           );
           lg.log(

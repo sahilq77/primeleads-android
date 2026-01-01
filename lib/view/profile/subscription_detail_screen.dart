@@ -346,30 +346,30 @@ class SubscriptionCard extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            height: 25,
-                            width: 25,
-                            decoration: BoxDecoration(
-                              color: AppColors.grey.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                Icons.check,
-                                color: AppColors.grey,
-                                size: 17,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            "${package.validityDays} Days",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   children: [
+                      //     Container(
+                      //       height: 25,
+                      //       width: 25,
+                      //       decoration: BoxDecoration(
+                      //         color: AppColors.grey.withOpacity(0.1),
+                      //         shape: BoxShape.circle,
+                      //       ),
+                      //       child: Center(
+                      //         child: Icon(
+                      //           Icons.check,
+                      //           color: AppColors.grey,
+                      //           size: 17,
+                      //         ),
+                      //       ),
+                      //     ),
+                      //     SizedBox(width: 8),
+                      //     Text(
+                      //       "${package.validityDays} Days",
+                      //       style: TextStyle(fontSize: 16),
+                      //     ),
+                      //   ],
+                      // ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: List.generate(

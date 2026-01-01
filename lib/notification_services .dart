@@ -254,8 +254,8 @@ class NotificationServices {
   Future<void> setInteractMessage(BuildContext context) async {
     try {
       // Handle app terminated state
-      RemoteMessage? initialMessage =
-          await FirebaseMessaging.instance.getInitialMessage();
+      RemoteMessage? initialMessage = await FirebaseMessaging.instance
+          .getInitialMessage();
       if (initialMessage != null) {
         lg.log('Handling initial message: ${initialMessage.data}');
         handleRemoteMessage(context, initialMessage);
@@ -274,13 +274,12 @@ class NotificationServices {
             Map<String, dynamic> map = jsonDecode(payload);
             Map<String, dynamic> data = map['data'] ?? {};
             Map<String, dynamic> notifMap = map['notification'] ?? {};
-            RemoteNotification? notification =
-                notifMap.isNotEmpty
-                    ? RemoteNotification(
-                      title: notifMap['title'],
-                      body: notifMap['body'],
-                    )
-                    : null;
+            RemoteNotification? notification = notifMap.isNotEmpty
+                ? RemoteNotification(
+                    title: notifMap['title'],
+                    body: notifMap['body'],
+                  )
+                : null;
             RemoteMessage reconstructedMessage = RemoteMessage(
               data: data,
               notification: notification,

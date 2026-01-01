@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Added for SystemChrome
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:prime_leads/model/video/get_training_video_response.dart';
 import 'package:prime_leads/utility/app_colors.dart';
-import 'package:prime_leads/view/bottomnavgation/bottom_navigation.dart';
 import 'package:readmore/readmore.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VideoDetailsScreen extends StatefulWidget {
   const VideoDetailsScreen({super.key});
@@ -20,25 +20,15 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
   late VideoData video;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _hasPlaybackError = false;
 
   @override
   void initState() {
     super.initState();
     video = Get.arguments as VideoData;
 
-    // Extract YouTube video ID
     String? videoId = _getYoutubeVideoId(video.videoLink);
     if (videoId == null) {
-      _controller = YoutubePlayerController.fromVideoId(
-        videoId: 'invalid',
-        params: const YoutubePlayerParams(
-          mute: false,
-          showControls: false,
-          showFullscreenButton: false,
-          loop: false,
-          enableCaption: false,
-        ),
-      );
       setState(() {
         _isLoading = false;
         _errorMessage = 'Invalid YouTube URL. Please check the video link.';
@@ -46,32 +36,42 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
       return;
     }
 
-    // Initialize YouTube player controller
     try {
       _controller = YoutubePlayerController.fromVideoId(
         videoId: videoId,
         params: const YoutubePlayerParams(
           mute: false,
           showControls: true,
-          showFullscreenButton: false,
+          showFullscreenButton: true,
           loop: false,
-          enableCaption: true,
+          enableCaption: false,
           captionLanguage: 'en',
-          playsInline: true,
+          playsInline: false, // Changed to false to allow fullscreen
+          strictRelatedVideos: true,
+          origin: 'https://www.youtube-nocookie.com',
         ),
       );
 
-      // Listen for player state changes to detect play button click
+      // Listen for errors
       _controller.listen((event) {
+        // Check for playback errors
+        if (event.hasError) {
+          setState(() {
+            _hasPlaybackError = true;
+            _errorMessage = 'This video cannot be played in embedded mode.';
+          });
+        }
+
         if (event.playerState == PlayerState.playing) {
-          // Video is playing, set to landscape
+          setState(() {
+            _hasPlaybackError = false;
+          });
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.landscapeRight,
           ]);
         } else if (event.playerState == PlayerState.paused ||
             event.playerState == PlayerState.ended) {
-          // Video is paused or ended, restore to portrait
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.portraitUp,
             DeviceOrientation.portraitDown,
@@ -79,16 +79,13 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
         }
       });
 
-      // Listen for fullscreen toggle
       _controller.onFullscreenChange = (isFullscreen) {
         if (isFullscreen) {
-          // Force landscape in fullscreen
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.landscapeLeft,
             DeviceOrientation.landscapeRight,
           ]);
         } else {
-          // Restore portrait when exiting fullscreen
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.portraitUp,
             DeviceOrientation.portraitDown,
@@ -100,16 +97,6 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      _controller = YoutubePlayerController.fromVideoId(
-        videoId: 'invalid',
-        params: const YoutubePlayerParams(
-          mute: false,
-          showControls: false,
-          showFullscreenButton: false,
-          loop: false,
-          enableCaption: false,
-        ),
-      );
       setState(() {
         _isLoading = false;
         _errorMessage = 'Error initializing player: $e';
@@ -117,7 +104,6 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
     }
   }
 
-  // Utility to extract YouTube video ID from URL
   String? _getYoutubeVideoId(String url) {
     try {
       if (url.contains('youtube.com')) {
@@ -131,9 +117,22 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
     }
   }
 
+  // Open video in YouTube app or browser
+  Future<void> _openInYouTube() async {
+    final Uri youtubeUrl = Uri.parse(video.videoLink);
+    if (await canLaunchUrl(youtubeUrl)) {
+      await launchUrl(youtubeUrl, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open YouTube')));
+      }
+    }
+  }
+
   @override
   void dispose() {
-    // Reset orientation to default (portrait) when leaving the screen
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -144,8 +143,6 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return YoutubePlayerScaffold(
       controller: _controller,
       aspectRatio: 16 / 9,
@@ -211,18 +208,9 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
                                       ? const Center(
                                         child: CircularProgressIndicator(),
                                       )
-                                      : _errorMessage != null
-                                      ? Center(
-                                        child: Text(
-                                          _errorMessage!,
-                                          style: GoogleFonts.poppins(
-                                            color: Colors.red,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      )
+                                      : _errorMessage != null ||
+                                          _hasPlaybackError
+                                      ? _buildErrorWidget()
                                       : player,
                             ),
                           ),
@@ -299,9 +287,56 @@ class _VideoDetailsScreenState extends State<VideoDetailsScreen> {
               ),
             ),
           ),
-          // bottomNavigationBar: const CustomBottomBar(),
         );
       },
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      color: Colors.black87,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.play_circle_outline,
+              color: Colors.white,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                _errorMessage ?? 'Video cannot be played in embedded mode',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _openInYouTube,
+              icon: const Icon(Icons.open_in_new),
+              label: Text(
+                'Watch on YouTube',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

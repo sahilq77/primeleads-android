@@ -36,6 +36,7 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
   // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
+  // live Credentials
   final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
   final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
 

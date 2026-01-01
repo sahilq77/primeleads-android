@@ -59,6 +59,13 @@ class LoginSendOtpController extends GetxController {
               backgroundColor: AppColors.error,
               colorText: Colors.white,
             );
+          } else {
+            Get.snackbar(
+              'Error',
+              'Failed to send OTP,\nPlease try again.',
+              backgroundColor: AppColors.error,
+              colorText: Colors.white,
+            );
           }
         }
       } else {

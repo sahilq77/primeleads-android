@@ -12,7 +12,7 @@ import '../../../utility/app_colors.dart';
 import '../../../utility/app_routes.dart';
 
 class RegisterVerifyOtpController extends GetxController {
-  RxBool isLoading = true.obs;
+  RxBool isLoading = false.obs;
   Future<void> verifyOTP({
     required BuildContext? context,
     required String? mobileNumber,

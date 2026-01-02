@@ -183,52 +183,70 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
               // },
             ),
             SizedBox(height: screenHeight * 0.04),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  String otp = _otpController.text;
-                  if (otp.length == 6) {
-                    final args = Get.arguments as Map<String, dynamic>?;
-                    final mobile = args?['mobile'] as String?;
-                    registerVerifyOtpControlller.verifyOTP(
-                      context: context,
-                      mobileNumber: mobile,
-                      otp: otp,
-                    );
-                    // Get.toNamed(
-                    //   AppRoutes.category,
-                    //   arguments: {
-                    //     "name": name,
-                    //     "state": state,
-                    //     "city": city,
-                    //     "mobile": mobile,
-                    //   },
-                    // );
-                  } else {
-                    Get.snackbar(
-                      'Error',
-                      'Please enter a complete 6-digit OTP',
-                      snackPosition: SnackPosition.TOP,
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+            Obx(
+              () => SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed:
+                      registerVerifyOtpControlller.isLoading.value
+                          ? null
+                          : () {
+                            String otp = _otpController.text;
+                            if (otp.length == 6) {
+                              final args =
+                                  Get.arguments as Map<String, dynamic>?;
+                              final mobile = args?['mobile'] as String?;
+                              registerVerifyOtpControlller.verifyOTP(
+                                context: context,
+                                mobileNumber: mobile,
+                                otp: otp,
+                              );
+                              // Get.toNamed(
+                              //   AppRoutes.category,
+                              //   arguments: {
+                              //     "name": name,
+                              //     "state": state,
+                              //     "city": city,
+                              //     "mobile": mobile,
+                              //   },
+                              // );
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Please enter a complete 6-digit OTP',
+                                snackPosition: SnackPosition.TOP,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+                          },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryTeal,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-                child: Text(
-                  'Verify OTP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  child:
+                      registerVerifyOtpControlller.isLoading.value
+                          ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : Text(
+                            'Verify OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ),

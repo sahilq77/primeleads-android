@@ -97,6 +97,23 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
     return formatter.format(dateTime);
   }
 
+  String formatTime12Hour(String time24) {
+    try {
+      final parts = time24.split(':');
+      if (parts.length >= 2) {
+        int hour = int.parse(parts[0]);
+        int minute = int.parse(parts[1]);
+        final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+        final now = DateTime.now();
+        final dateTime = DateTime(now.year, now.month, now.day, hour, minute);
+        return DateFormat('h:mm a').format(dateTime);
+      }
+      return time24;
+    } catch (e) {
+      return time24;
+    }
+  }
+
   Future<void> _selectReminderDate(
     BuildContext context,
     StateSetter setState,
@@ -318,7 +335,10 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                         "Date",
                         "${formatDate(lead.date.toString())}",
                       ),
-                      _buildDetailRow("Time", "${lead.reminderTime}"),
+                      _buildDetailRow(
+                        "Time",
+                        formatTime12Hour(lead.reminderTime),
+                      ),
                       SizedBox(height: screenHeight * 0.01),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,

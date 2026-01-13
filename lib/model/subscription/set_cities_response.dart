@@ -39,11 +39,17 @@ class GetSetCitiesResponse {
 
 class Data {
   String subscribedUserId;
+  String topicName;
 
-  Data({required this.subscribedUserId});
+  Data({required this.subscribedUserId, required this.topicName});
 
-  factory Data.fromJson(Map<String, dynamic> json) =>
-      Data(subscribedUserId: json["subscribed_user_id"] ?? "");
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
+    subscribedUserId: json["subscribed_user_id"] ?? "",
+    topicName: json["topic"] ?? "",
+  );
 
-  Map<String, dynamic> toJson() => {"subscribed_user_id": subscribedUserId};
+  Map<String, dynamic> toJson() => {
+    "subscribed_user_id": subscribedUserId,
+    "topic": topicName,
+  };
 }

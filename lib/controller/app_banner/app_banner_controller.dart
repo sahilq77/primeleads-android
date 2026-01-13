@@ -21,22 +21,20 @@ class AppBannerController extends GetxController {
   RxString imageLink = "".obs;
 
   Future<void> subscribeToTopic(String topic) async {
-    // Sanitize the topic name to ensure it meets Firebase requirements
-    String sanitizedTopic = topic.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
-    if (sanitizedTopic.isNotEmpty &&
-        RegExp(r'^[0-9]').hasMatch(sanitizedTopic)) {
-      sanitizedTopic = 'topic_$sanitizedTopic';
+    // Split the topic string by comma and subscribe to each topic
+    List<String> topics = topic.split(',');
+    for (String singleTopic in topics) {
+      await FirebaseMessaging.instance.subscribeToTopic(singleTopic.trim());
+      print('Subscribed to topic: ${singleTopic.trim()}');
     }
-    sanitizedTopic =
-        sanitizedTopic.length > 250
-            ? sanitizedTopic.substring(0, 250)
-            : sanitizedTopic;
+  }
 
-    try {
-      await FirebaseMessaging.instance.subscribeToTopic(sanitizedTopic);
-      print('Subscribed to topic: $sanitizedTopic');
-    } catch (e) {
-      print('Error subscribing to topic: $e');
+  Future<void> unsubscribeFromTopic(String topic) async {
+    // Split the topic string by comma and unsubscribe from each topic
+    List<String> topics = topic.split(',');
+    for (String singleTopic in topics) {
+      await FirebaseMessaging.instance.unsubscribeFromTopic(singleTopic.trim());
+      print('Unsubscribed from topic: ${singleTopic.trim()}');
     }
   }
 
@@ -74,11 +72,7 @@ class AppBannerController extends GetxController {
         if (response[0].status == "true") {
           final images = response[0].data;
           // Subscribe to a topic (use token if available, or a default topic)
-          if (token != null && token.isNotEmpty) {
-            await subscribeToTopic(token);
-          } else {
-            await subscribeToTopic('banner_updates');
-          }
+
           bannerImagesList.clear();
           for (var img in images) {
             bannerImagesList.add(
@@ -90,6 +84,12 @@ class AppBannerController extends GetxController {
               ),
             );
           }
+        }
+        if (response[0].topicToUnsubscribed.isNotEmpty) {
+          await unsubscribeFromTopic(response[0].topicToUnsubscribed);
+        }
+        if (response[0].topic.isNotEmpty) {
+          await subscribeToTopic(response[0].topic);
         }
       } else {
         errorMessage.value = 'No response from server';

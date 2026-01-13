@@ -16,11 +16,15 @@ class GetBannerImagesResponse {
   String status;
   String message;
   List<BannerImages> data;
+  String topic;
+  String topicToUnsubscribed;
 
   GetBannerImagesResponse({
     required this.status,
     required this.message,
     required this.data,
+    required this.topic,
+    required this.topicToUnsubscribed,
   });
 
   factory GetBannerImagesResponse.fromJson(Map<String, dynamic> json) =>
@@ -30,12 +34,16 @@ class GetBannerImagesResponse {
         data: List<BannerImages>.from(
           json["data"].map((x) => BannerImages.fromJson(x)),
         ),
+        topic: json["topic"] ?? "",
+        topicToUnsubscribed: json["topic_to_unsubscribed"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
     "status": status,
     "message": message,
     "data": List<dynamic>.from(data.map((x) => x.toJson())),
+    "topic": topic,
+    "topic_to_unsubscribed": topicToUnsubscribed,
   };
 }
 

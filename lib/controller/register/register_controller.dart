@@ -14,11 +14,18 @@ import '../../utility/app_utility.dart';
 class RegisterController extends GetxController {
   RxBool isLoading = true.obs;
   Future<void> subscribeToTopic(String topic) async {
-    // Split the topic string by comma and subscribe to each topic
     List<String> topics = topic.split(',');
     for (String singleTopic in topics) {
       await FirebaseMessaging.instance.subscribeToTopic(singleTopic.trim());
       print('Subscribed to topic: ${singleTopic.trim()}');
+    }
+  }
+
+  Future<void> unsubscribeFromTopic(String topic) async {
+    List<String> topics = topic.split(',');
+    for (String singleTopic in topics) {
+      await FirebaseMessaging.instance.unsubscribeFromTopic(singleTopic.trim());
+      print('Unsubscribed from topic: ${singleTopic.trim()}');
     }
   }
 
@@ -60,14 +67,18 @@ class RegisterController extends GetxController {
         List<GetLoginResponse> response = List.from(list);
         if (response[0].status == "true") {
           final user = response[0].data;
-          // log("userid${user.userid}");
           await AppUtility.setUserInfo(
             user.sectorName,
             user.id,
             user.sectorID,
             "",
           );
-          subscribeToTopic(user.topicName);
+          if (user.topicUnsubscribed.isNotEmpty) {
+            await unsubscribeFromTopic(user.topicUnsubscribed);
+          }
+          if (user.topicName.isNotEmpty) {
+            await subscribeToTopic(user.topicName);
+          }
           Get.snackbar(
             'Success',
             'Login Success',

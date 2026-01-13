@@ -249,64 +249,85 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              // Safely parse minValue
-              int minValue = 0;
-              try {
-                if (minmaxcontroller.minValue != null &&
-                    minmaxcontroller.minValue.value != null &&
-                    minmaxcontroller.minValue.isNotEmpty) {
-                  minValue = int.parse(minmaxcontroller.minValue.value);
-                }
-              } catch (e) {
-                print('Error parsing minValue: $e');
-                return null;
-                // Disable button if minValue is invalid
-              }
-              return selectedCities.length >= minValue &&
-                      controller.selectedStateName?.value != null
-                  ? () {
-                    log('Selected Cities: $selectedCities');
-                    log(
-                      'Selected State ID: ${controller.selectedStateId?.value}',
-                    );
-                    log(
-                      'Selected City IDs: ${selectedCities.map((city) => controller.getCityId(city)).toList()}',
-                    );
-                    // Add navigation or API call here
-                    final args = Get.arguments;
-                    final subid = args['subscription_id'] as String;
-                    final tranID = args['transaction'] as String;
-                    // final subUserID = args['subscribed_user_id'] as String;
-                    log('subscription_id: $subid');
-                    log('transaction_id: $tranID');
-                    buyController.submitSubscription(
-                      subscriptionid: subid,
-                      subscriptionUserId: "",
-                      context: context,
-                      stateID: controller.selectedStateId?.value,
-                      cityID:
-                          selectedCities
-                              .map((city) => controller.getCityId(city))
-                              .toList(),
-                      transactionID: tranID,
-                    );
-                  }
-                  : null;
-            }(),
-            child: const Text(
-              'Submit',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryTeal,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              textStyle: const TextStyle(fontSize: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        child: Obx(
+          () => SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed:
+                  buyController.isLoading.value
+                      ? null
+                      : () {
+                        // Safely parse minValue
+                        int minValue = 0;
+                        try {
+                          if (minmaxcontroller.minValue != null &&
+                              minmaxcontroller.minValue.value != null &&
+                              minmaxcontroller.minValue.isNotEmpty) {
+                            minValue = int.parse(
+                              minmaxcontroller.minValue.value,
+                            );
+                          }
+                        } catch (e) {
+                          print('Error parsing minValue: $e');
+                          return null;
+                          // Disable button if minValue is invalid
+                        }
+                        return selectedCities.length >= minValue &&
+                                controller.selectedStateName?.value != null
+                            ? () {
+                              log('Selected Cities: $selectedCities');
+                              log(
+                                'Selected State ID: ${controller.selectedStateId?.value}',
+                              );
+                              log(
+                                'Selected City IDs: ${selectedCities.map((city) => controller.getCityId(city)).toList()}',
+                              );
+                              // Add navigation or API call here
+                              final args = Get.arguments;
+                              final subid = args['subscription_id'] as String;
+                              final tranID = args['transaction'] as String;
+                              // final subUserID = args['subscribed_user_id'] as String;
+                              log('subscription_id: $subid');
+                              log('transaction_id: $tranID');
+                              buyController.submitSubscription(
+                                subscriptionid: subid,
+                                subscriptionUserId: "",
+                                context: context,
+                                stateID: controller.selectedStateId?.value,
+                                cityID:
+                                    selectedCities
+                                        .map(
+                                          (city) => controller.getCityId(city),
+                                        )
+                                        .toList(),
+                                transactionID: tranID,
+                              );
+                            }
+                            : null;
+                      }(),
+              child:
+                  buyController.isLoading.value
+                      ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : Text(
+                        'Submit',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryTeal,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(fontSize: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ),

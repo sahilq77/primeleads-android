@@ -33,14 +33,16 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   final SetOrderController setOrderController = Get.put(SetOrderController());
 
   // Test Credentials (Replace with production credentials as needed)
-  // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
-  // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+  final String _keyId = 'rzp_test_R7Swkdhjyig54S';
+  final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
   // live Credentials
-  final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
-  final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
+  // final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
+  // final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
 
   String transactionId = "RT${DateTime.now().millisecondsSinceEpoch}";
+  String? _currentOrderId;
+  bool _paymentProcessed = false;
 
   // StringBuffer to collect all logs
   final StringBuffer _logBuffer = StringBuffer();
@@ -150,6 +152,9 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     try {
       _razorpay.open(options);
       _log('[RazorpayGateway] Razorpay checkout opened');
+
+      // Store orderId for payment verification
+      _currentOrderId = orderId;
     } catch (e) {
       _log('[RazorpayGateway] Error opening Razorpay checkout: $e');
       _showErrorSnackBar('Error opening checkout: $e');
@@ -184,6 +189,50 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     }
   }
 
+  Future<bool> _verifyPaymentStatus(String orderId) async {
+    try {
+      final authString = base64Encode(utf8.encode('$_keyId:$_keySecret'));
+      final response = await http.get(
+        Uri.parse('https://api.razorpay.com/v1/orders/$orderId/payments'),
+        headers: {'Authorization': 'Basic $authString'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final items = data['items'] as List;
+
+        if (items.isNotEmpty) {
+          final payment = items.first;
+          if (payment['status'] == 'captured') {
+            _log(
+              '[RazorpayGateway] Payment verified as captured: ${payment['id']}',
+            );
+
+            if (!_paymentProcessed) {
+              _paymentProcessed = true;
+              await _callSetPaymentApi("1");
+
+              Get.offNamed(
+                AppRoutes.paymentRieceipt,
+                arguments: {
+                  'transactionId': transactionId,
+                  'subscriptionId': widget.subscriptionId,
+                  'amount': widget.finalOrderPrice,
+                  'paymentId': payment['id'],
+                },
+              );
+            }
+            return true;
+          }
+        }
+        _log('[RazorpayGateway] No captured payment found for order: $orderId');
+      }
+    } catch (e) {
+      _log('[RazorpayGateway] Error verifying payment: $e');
+    }
+    return false;
+  }
+
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     _log('[RazorpayGateway] Payment Success Response:');
     _log('[RazorpayGateway]   paymentId: ${response.paymentId}');
@@ -191,32 +240,36 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     _log('[RazorpayGateway]   signature: ${response.signature}');
     _log('[RazorpayGateway] Full Success Response: ${response.data}');
 
-    _log('[RazorpayGateway] Calling setPayment API with:');
-    _log('[RazorpayGateway] transactionId: $transactionId');
-    _log('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
-    _log('[RazorpayGateway] paymentStatus: 1');
+    if (!_paymentProcessed) {
+      _paymentProcessed = true;
 
-    bool apiSuccess = await _callSetPaymentApi("1");
+      _log('[RazorpayGateway] Calling setPayment API with:');
+      _log('[RazorpayGateway] transactionId: $transactionId');
+      _log('[RazorpayGateway] subscriptionId: ${widget.subscriptionId}');
+      _log('[RazorpayGateway] paymentStatus: 1');
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Get.offNamed(
-        AppRoutes.paymentRieceipt,
-        arguments: {
-          'transactionId': transactionId,
-          'subscriptionId': widget.subscriptionId,
-          'amount': widget.finalOrderPrice,
-          'paymentId': response.paymentId,
-        },
-      );
-    });
+      bool apiSuccess = await _callSetPaymentApi("1");
 
-    if (!apiSuccess) {
-      _log(
-        '[RazorpayGateway] setPayment API call failed, but navigating to receipt',
-      );
-      _showErrorSnackBar(
-        'Payment recorded, but status update failed. Contact support if needed.',
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offNamed(
+          AppRoutes.paymentRieceipt,
+          arguments: {
+            'transactionId': transactionId,
+            'subscriptionId': widget.subscriptionId,
+            'amount': widget.finalOrderPrice,
+            'paymentId': response.paymentId,
+          },
+        );
+      });
+
+      if (!apiSuccess) {
+        _log(
+          '[RazorpayGateway] setPayment API call failed, but navigating to receipt',
+        );
+        _showErrorSnackBar(
+          'Payment recorded, but status update failed. Contact support if needed.',
+        );
+      }
     }
   }
 
@@ -226,17 +279,36 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
     _log('[RazorpayGateway]   message: ${response.message}');
     _log('[RazorpayGateway] Full Error Response: ${response.error}');
 
-    // Call _callSetPaymentApi with paymentStatus "0" for failed payments
-    bool apiSuccess = await _callSetPaymentApi("0");
+    // Wait 3 seconds then verify payment status before going back
+    await Future.delayed(Duration(seconds: 3));
 
+    if (_currentOrderId != null && !_paymentProcessed) {
+      bool isPaymentCaptured = await _verifyPaymentStatus(_currentOrderId!);
+
+      // If payment was captured, don't proceed with error handling
+      if (isPaymentCaptured) {
+        return;
+      }
+    }
+
+    // Show error only if payment was not captured
     _showErrorSnackBar(response.message ?? "Payment failed");
 
-    if (!apiSuccess) {
-      _log('[RazorpayGateway] setPayment API call failed for paymentStatus: 0');
-      _showErrorSnackBar(
-        'Payment failed and status update failed. Contact support if needed.',
-      );
+    // If still not processed, call setPayment API with status 0
+    if (!_paymentProcessed) {
+      bool apiSuccess = await _callSetPaymentApi("0");
+      if (!apiSuccess) {
+        _log(
+          '[RazorpayGateway] setPayment API call failed for paymentStatus: 0',
+        );
+        _showErrorSnackBar(
+          'Payment failed and status update failed. Contact support if needed.',
+        );
+      }
     }
+
+    // Now navigate back
+    Navigator.of(context).pop();
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
@@ -250,10 +322,10 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
       message,
       backgroundColor: Colors.red,
       colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 5),
     );
-    Navigator.of(context).pop();
+    // Don't immediately pop - let WillPopScope handle the verification
   }
 
   // Method to retrieve full logs
@@ -272,41 +344,61 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Scaffold(
-        body: Center(
-          child:
-              _setPaymentController.isLoading.value
-                  ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 20),
-                      Text('Processing Payment...'),
-                    ],
-                  )
-                  : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 20),
-                      const Text('Initiating Payment...'),
-                      const SizedBox(height: 20),
-                      // Button to display full logs (for testing)
-                      ElevatedButton(
-                        onPressed: () {
-                          Get.snackbar(
-                            'Payment Logs',
-                            getFullLogs(),
-                            duration: const Duration(seconds: 10),
-                            snackPosition: SnackPosition.TOP,
-                            maxWidth: MediaQuery.of(context).size.width * 0.9,
-                          );
-                        },
-                        child: const Text('Show Full Logs'),
-                      ),
-                    ],
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_currentOrderId != null && !_paymentProcessed) {
+          _log('[RazorpayGateway] User going back, checking payment status...');
+
+          // Wait 3 seconds before checking payment status
+          await Future.delayed(Duration(seconds: 3));
+          bool isPaymentCaptured = await _verifyPaymentStatus(_currentOrderId!);
+
+          // If payment is captured, don't allow back navigation
+          if (isPaymentCaptured) {
+            _log(
+              '[RazorpayGateway] Payment captured, preventing back navigation',
+            );
+            return false;
+          }
+        }
+        return true;
+      },
+      child: Obx(
+        () => Scaffold(
+          body: Center(
+            child:
+                _setPaymentController.isLoading.value
+                    ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 20),
+                        Text('Processing Payment...'),
+                      ],
+                    )
+                    : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 20),
+                        const Text('Initiating Payment...'),
+                        const SizedBox(height: 20),
+                        // Button to display full logs (for testing)
+                        ElevatedButton(
+                          onPressed: () {
+                            Get.snackbar(
+                              'Payment Logs',
+                              getFullLogs(),
+                              duration: const Duration(seconds: 10),
+                              snackPosition: SnackPosition.TOP,
+                              maxWidth: MediaQuery.of(context).size.width * 0.9,
+                            );
+                          },
+                          child: const Text('Show Full Logs'),
+                        ),
+                      ],
+                    ),
+          ),
         ),
       ),
     );

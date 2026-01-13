@@ -19,7 +19,7 @@ import '../../utility/app_routes.dart';
 import '../../utility/app_utility.dart';
 
 class SetOrderController extends GetxController {
-  RxBool isLoading = true.obs;
+  RxBool isLoading = false.obs;
   var setOrderList = <SetOrderData>[].obs;
 
   Future<void> setOrder({

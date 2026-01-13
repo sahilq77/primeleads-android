@@ -24,7 +24,7 @@ class BuySubscriptionController extends GetxController {
   final SetPaymentController _setPaymentController = Get.put(
     SetPaymentController(),
   );
-  RxBool isLoading = true.obs;
+  RxBool isLoading = false.obs;
 
   void onInit() {
     super.onInit();
@@ -95,7 +95,9 @@ class BuySubscriptionController extends GetxController {
           //   AppUtility.sectorID.toString(),
           //   user.subscribtionId,
           // );
-          // subscribeToTopic(user.topicName);
+          if (user.topicName.isNotEmpty) {
+            await subscribeToTopic(user.topicName);
+          }
 
           // Show Thank You Dialog
           // _showThankYouDialog(context ?? Get.context!);

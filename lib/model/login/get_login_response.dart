@@ -47,6 +47,7 @@ class LoginResponse {
   String sectorID;
   String otp;
   String topicName;
+  String topicUnsubscribed;
   String subscriptionId;
 
   LoginResponse({
@@ -59,6 +60,7 @@ class LoginResponse {
     required this.sectorID,
     required this.otp,
     required this.topicName,
+    required this.topicUnsubscribed,
     required this.subscriptionId,
   });
 
@@ -72,6 +74,7 @@ class LoginResponse {
     sectorID: json["sector_id"] ?? "",
     otp: json["otp"] ?? "",
     topicName: json["topic"] ?? "",
+    topicUnsubscribed: json["topic_to_unsubscribed"] ?? "",
     subscriptionId: json["subscription_id"] ?? "",
   );
 
@@ -85,6 +88,7 @@ class LoginResponse {
     "sector_id": sectorID,
     "otp": otp,
     "topic": topicName,
+    "topic_to_unsubscribed": topicUnsubscribed,
     "subscription_id": subscriptionId,
   };
 }

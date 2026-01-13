@@ -12,7 +12,7 @@ import '../../utility/app_routes.dart';
 import '../../utility/app_utility.dart';
 
 class LoginController extends GetxController {
-  RxBool isLoading = true.obs;  
+  RxBool isLoading = true.obs;
 
   Future<void> subscribeToTopic(String topic) async {
     // Split the topic string by comma and subscribe to each topic
@@ -20,6 +20,34 @@ class LoginController extends GetxController {
     for (String singleTopic in topics) {
       await FirebaseMessaging.instance.subscribeToTopic(singleTopic.trim());
       print('Subscribed to topic: ${singleTopic.trim()}');
+    }
+  }
+
+  Future<void> unsubscribeFromTopic(String topic) async {
+    // Split the topic string by comma and unsubscribe from each topic
+    List<String> topics = topic.split(',');
+    for (String singleTopic in topics) {
+      await FirebaseMessaging.instance.unsubscribeFromTopic(singleTopic.trim());
+      print('Unsubscribed from topic: ${singleTopic.trim()}');
+    }
+  }
+
+  Future<void> manageTopicSubscriptions({
+    String? topicsToSubscribe,
+    String? topicsToUnsubscribe,
+  }) async {
+    try {
+      // First unsubscribe from old topics
+      if (topicsToUnsubscribe != null && topicsToUnsubscribe.isNotEmpty) {
+        await unsubscribeFromTopic(topicsToUnsubscribe);
+      }
+
+      // Then subscribe to new topics
+      if (topicsToSubscribe != null && topicsToSubscribe.isNotEmpty) {
+        await subscribeToTopic(topicsToSubscribe);
+      }
+    } catch (e) {
+      log('Error managing topic subscriptions: $e');
     }
   }
 
@@ -56,8 +84,13 @@ class LoginController extends GetxController {
             user.sectorID,
             user.subscriptionId,
           );
-          // Subscribe to multiple topics
-          await subscribeToTopic(user.topicName);
+
+          // Manage topic subscriptions (unsubscribe from old, subscribe to new)
+          await manageTopicSubscriptions(
+            topicsToUnsubscribe: user.topicUnsubscribed,
+            topicsToSubscribe: user.topicName,
+          );
+
           Get.snackbar(
             'Success',
             'Login Success',

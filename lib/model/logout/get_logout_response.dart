@@ -52,6 +52,7 @@ class Data {
   DateTime createdOn;
   DateTime updatedOn;
   String topicName;
+  String topicUnsubscribed;
 
   Data({
     required this.id,
@@ -68,6 +69,7 @@ class Data {
     required this.createdOn,
     required this.updatedOn,
     required this.topicName,
+    required this.topicUnsubscribed,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
@@ -84,7 +86,8 @@ class Data {
     isDeleted: json["is_deleted"] ?? "",
     createdOn: DateTime.parse(json["created_on"]),
     updatedOn: DateTime.parse(json["updated_on"]),
-    topicName: json["topic"],
+    topicName: json["topic"] ?? "",
+    topicUnsubscribed: json["topic_to_unsubscribed"] ?? "",
   );
 
   Map<String, dynamic> toJson() => {
@@ -102,5 +105,6 @@ class Data {
     "created_on": createdOn.toIso8601String(),
     "updated_on": updatedOn.toIso8601String(),
     "topic": topicName,
+    "topic_to_unsubscribed": topicUnsubscribed,
   };
 }

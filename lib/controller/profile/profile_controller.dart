@@ -153,7 +153,12 @@ class ProfileController extends GetxController {
         List<GetLogoutResponse> response = List.from(list);
         if (response[0].status == "true") {
           final logout = response[0].data;
-          subscribeToTopic(logout.topicName);
+          if (logout.topicUnsubscribed.isNotEmpty) {
+            await unsubscribeFromTopic(logout.topicUnsubscribed);
+          }
+          if (logout.topicName.isNotEmpty) {
+            await subscribeToTopic(logout.topicName);
+          }
           Get.snackbar(
             'Success',
             'Logout Successful',
@@ -228,11 +233,18 @@ class ProfileController extends GetxController {
   }
 
   Future<void> subscribeToTopic(String topic) async {
-    // Split the topic string by comma and subscribe to each topic
     List<String> topics = topic.split(',');
     for (String singleTopic in topics) {
       await FirebaseMessaging.instance.subscribeToTopic(singleTopic.trim());
       print('Subscribed to topic: ${singleTopic.trim()}');
+    }
+  }
+
+  Future<void> unsubscribeFromTopic(String topic) async {
+    List<String> topics = topic.split(',');
+    for (String singleTopic in topics) {
+      await FirebaseMessaging.instance.unsubscribeFromTopic(singleTopic.trim());
+      print('Unsubscribed from topic: ${singleTopic.trim()}');
     }
   }
 }

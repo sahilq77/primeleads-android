@@ -1,7 +1,7 @@
 class Networkutility {
   //https://seekhelp.in/prime-lead/
   //https://primeleadssolutions.com/
-  static String baseUrl = "https://seekhelp.in/prime-lead/";
+  static String baseUrl = "https://primeleadssolutions.com/";
   static String apiKey = "?key=131b1770&__method=POST";
   static String register = "${baseUrl + "registration"}";
   static int registerApi = 1;

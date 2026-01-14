@@ -12,7 +12,7 @@ import '../../utility/app_routes.dart';
 import '../../utility/app_utility.dart';
 
 class LoginController extends GetxController {
-  RxBool isLoading = true.obs;
+  RxBool isLoading = false.obs;
 
   Future<void> subscribeToTopic(String topic) async {
     // Split the topic string by comma and subscribe to each topic

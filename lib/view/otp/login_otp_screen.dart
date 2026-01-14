@@ -157,7 +157,7 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
                 // Optional: Handle onChanged if needed
               },
               isCursorAnimationEnabled: true,
-              showCursor: true, 
+              showCursor: true,
               // onCompleted: (pin) {
               //   if (pin.length == 6) {
               //     final args = Get.arguments;
@@ -193,52 +193,69 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
               // },
             ),
             SizedBox(height: screenHeight * 0.04),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  String otp = _otpController.text;
-                  if (otp.length == 6) {
-                    final args = Get.arguments;
-                    final mobile = args as String?;
-                    if (mobile == "9766869071" && otp == "123456") {
-                      loginController.login(
-                        mobileNumber: mobile,
-                        otp: otp,
-                        token: pushtoken,
-                      );
-                    } else {
-                      verifyLoginOtpController.verifyOTP(
-                        context: context,
-                        mobileNumber: mobile,
-                        otp: otp,
-                        token: pushtoken,
-                      );
-                    }
-                  } else {
-                    Get.snackbar(
-                      'Error',
-                      'Please enter a complete 6-digit OTP',
-                      snackPosition: SnackPosition.TOP,
-                      backgroundColor: Colors.red,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+            Obx(
+              () => SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed:
+                      loginController.isLoading.value
+                          ? null
+                          : () {
+                            String otp = _otpController.text;
+                            if (otp.length == 6) {
+                              final args = Get.arguments;
+                              final mobile = args as String?;
+                              if (mobile == "9766869071" && otp == "123456") {
+                                loginController.login(
+                                  mobileNumber: mobile,
+                                  otp: otp,
+                                  token: pushtoken,
+                                );
+                              } else {
+                                verifyLoginOtpController.verifyOTP(
+                                  context: context,
+                                  mobileNumber: mobile,
+                                  otp: otp,
+                                  token: pushtoken,
+                                );
+                              }
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Please enter a complete 6-digit OTP',
+                                snackPosition: SnackPosition.TOP,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+                          },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryTeal,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
-                child: Text(
-                  'Verify OTP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  child:
+                      loginController.isLoading.value
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : Text(
+                            'Verify OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ),

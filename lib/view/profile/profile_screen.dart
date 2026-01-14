@@ -529,30 +529,47 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(width: 10),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Get.back();
-                                    controller.logout();
-                                  },
-                                  child: Container(
-                                    height: 50,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryTeal,
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'Logout',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                        ),
+                              Obx(
+                                () => Expanded(
+                                  child: GestureDetector(
+                                    onTap:
+                                        controller.isLoadingout.value
+                                            ? null
+                                            : () {
+                                              controller.logout();
+                                            },
+                                    child: Container(
+                                      height: 50,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primaryTeal,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Center(
+                                        child:
+                                            controller.isLoadingout.value
+                                                ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(Colors.white),
+                                                  ),
+                                                )
+                                                : Text(
+                                                  'Logout',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
                                       ),
                                     ),
                                   ),

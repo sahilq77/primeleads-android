@@ -132,7 +132,7 @@ class ProfileController extends GetxController {
     await fetchUserProfile(context: context, isRefresh: true);
   }
 
-  RxBool isLoadingout = true.obs;
+  RxBool isLoadingout = false.obs;
   Future<void> logout({BuildContext? context}) async {
     try {
       final jsonBody = {
@@ -165,6 +165,8 @@ class ProfileController extends GetxController {
             backgroundColor: AppColors.success,
             colorText: Colors.white,
           );
+
+          Navigator.pop(Get.context!);
           AppUtility.clearUserInfo().then((_) {
             Get.offAllNamed(
               AppRoutes.login,

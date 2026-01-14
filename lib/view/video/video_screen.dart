@@ -72,7 +72,7 @@ class _VideoListScreenState extends State<VideoListScreen> {
   Future<void> _openWhatsApp() async {
     // Temporary WhatsApp group invite link or phone number
     const String whatsappUrl =
-        'https://chat.whatsapp.com/GbSgcbRongJGlhUgX5yfSL?mode=ac_t'; // Replace with actual link later
+        'https://chat.whatsapp.com/Hwt7Ay5WQJeK4PgYHO8CA5'; // Replace with actual link later
     // Alternatively, use a phone number: 'https://wa.me/1234567890?text=Hello%20I%20want%20to%20join%20the%20community'
 
     final Uri url = Uri.parse(whatsappUrl);

@@ -1,7 +1,7 @@
 class Networkutility {
   //https://seekhelp.in/prime-lead/
   //https://primeleadssolutions.com/
-  static String baseUrl = "https://primeleadssolutions.com/";
+  static String baseUrl = "https://seekhelp.in/prime-lead/";
   static String apiKey = "?key=131b1770&__method=POST";
   static String register = "${baseUrl + "registration"}";
   static int registerApi = 1;
@@ -76,6 +76,9 @@ class Networkutility {
   static int checkSubscriptionStatusApi = 34;
   static String setOrder = "${baseUrl + "set_order"}";
   static int setOrderApi = 35;
+
+  static String setDeviceDetails = "${baseUrl + "save_device_info"}";
+  static int setDeviceDetailsApi = 36;
 }
 
 

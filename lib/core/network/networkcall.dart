@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:prime_leads/core/network/exceptions.dart';
 import 'package:prime_leads/model/global_model/get_city_response.dart';
+import 'package:prime_leads/model/set_device_details/get_set_device_detail_response.dart';
 import 'package:prime_leads/model/subscription/get_subscription_response.dart'
     show getSubscriptionResponseFromJson;
 
@@ -208,6 +209,11 @@ class Networkcall {
           case 35:
             final setOrder = getSetOrderResponseFromJson(str);
             return setOrder;
+
+          case 36:
+            final str = "[${response.body}]";
+            final setDeviceDetail = setDeviceDetailResponseFromJson(str);
+            return setDeviceDetail;
 
           default:
             log("Invalid request code: $requestCode");

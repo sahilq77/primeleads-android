@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:prime_leads/controller/global_controller.dart/set_device_details_controller.dart';
 import 'package:prime_leads/controller/home/home_controller.dart';
 import 'package:prime_leads/controller/profile/profile_controller.dart';
 import 'package:prime_leads/controller/whyprimeleads/whyprimeleads_controller.dart';
@@ -54,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final testimonialController = Get.put(TestimonialController());
   final profileController = Get.put(ProfileController());
   final leadsController = Get.put(GetLeadsController());
+  final setDeviceDetailController = Get.put(SetDeviceDetailsController());
   final List<Map<String, String>> testimonials = [
     {
       'title': 'Digital Agency',

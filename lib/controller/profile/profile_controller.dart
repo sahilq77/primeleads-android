@@ -159,19 +159,6 @@ class ProfileController extends GetxController {
           if (logout.topicName.isNotEmpty) {
             await subscribeToTopic(logout.topicName);
           }
-          Get.snackbar(
-            'Success',
-            'Logout Successful',
-            backgroundColor: AppColors.success,
-            colorText: Colors.white,
-          );
-
-          Navigator.pop(Get.context!);
-          AppUtility.clearUserInfo().then((_) {
-            Get.offAllNamed(
-              AppRoutes.login,
-            ); // Navigate to login screen after logout
-          });
         } else {
           Get.snackbar(
             'Error',
@@ -231,6 +218,19 @@ class ProfileController extends GetxController {
       );
     } finally {
       isLoadingout.value = false;
+      Get.snackbar(
+        'Success',
+        'Logout Successful',
+        backgroundColor: AppColors.success,
+        colorText: Colors.white,
+      );
+
+      Navigator.pop(Get.context!);
+      AppUtility.clearUserInfo().then((_) {
+        Get.offAllNamed(
+          AppRoutes.login,
+        ); // Navigate to login screen after logout
+      });
     }
   }
 

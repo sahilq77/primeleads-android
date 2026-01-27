@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -17,12 +18,15 @@ import 'package:prime_leads/view/bottomnavgation/bottom_navigation.dart';
 import 'package:prime_leads/view/home/full_video_view.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:video_player/video_player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import '../../controller/app_banner/app_banner_controller.dart';
 import '../../controller/bottomnavigation/bottom_navigation_controller.dart';
 import '../../controller/leads/get_leads_controller.dart';
 import '../../controller/smarter_lead/smarter_lead_controller.dart';
 import '../../controller/testimonial/testimonial_controller.dart';
+import '../../controller/subscription/set_payment_controller.dart';
 import '../../notification_services .dart';
 import '../../utility/nodatascreen.dart';
 
@@ -56,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final profileController = Get.put(ProfileController());
   final leadsController = Get.put(GetLeadsController());
   final setDeviceDetailController = Get.put(SetDeviceDetailsController());
+  final setPaymentController = Get.put(SetPaymentController());
   final List<Map<String, String>> testimonials = [
     {
       'title': 'Digital Agency',
@@ -99,6 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Check for pending payments on app startup
+      _checkPendingPayments();
+      
       leadsController.fetchleadsList(context: context);
       notificationServices.firebaseInit(context);
       notificationServices.setInteractMessage(context);
@@ -111,15 +119,112 @@ class _HomeScreenState extends State<HomeScreen> {
           token: pushtoken.value,
         );
       });
-      // appbannerController.fetchBannerImages(
-      //   context: context,
-      //   token:
-      //       "e9YT98AsT3KGK750Bf9m66:APA91bG4PqSEYbK291kmv4wsVe1tUSwAyLdRhSMim13iTh9bYy8Q8mMmdMeXlUw00WyKiN9r72vGg-abEcR5cc636oy3mSBZa1oDqHlSdmsQQ8kPuJ-N86g",
-      // );
       whyprimeleadsController.fetchwhyprimeleads(context: context);
       smartleadController.fetchSmartLead(context: context);
       testimonialController.fetchtestimonial(context: context);
     });
+  }
+
+  Future<void> _checkPendingPayments() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pendingOrderId = prefs.getString('pending_order_id');
+      final pendingSubscriptionId = prefs.getString('pending_subscription_id');
+      final pendingTransactionId = prefs.getString('pending_transaction_id');
+      final pendingRefNo = prefs.getString('pending_ref_no');
+      final pendingSubsUserId = prefs.getString('pending_subs_user_id');
+      
+      if (pendingOrderId != null && pendingSubscriptionId != null) {
+        log('Found pending payment: $pendingOrderId');
+        
+        // Verify payment status
+        bool isPaymentCaptured = await _verifyPendingPayment(pendingOrderId);
+        
+        if (isPaymentCaptured && pendingRefNo != null && pendingSubsUserId != null) {
+          // Call setPayment API
+          await _callSetPaymentApi(
+            refNo: pendingRefNo,
+            subsUserId: pendingSubsUserId,
+            subscriptionId: pendingSubscriptionId,
+            transactionId: pendingTransactionId ?? '',
+          );
+          
+          // Clear pending data and redirect to city selection
+          await _clearPendingOrder();
+          
+          Get.offNamed(
+            AppRoutes.selectLocation,
+            arguments: {
+              'subscription_id': pendingSubscriptionId,
+              'transaction': pendingTransactionId,
+            },
+          );
+        }
+      }
+    } catch (e) {
+      log('Error checking pending payments: $e');
+    }
+  }
+
+  Future<bool> _verifyPendingPayment(String orderId) async {
+    try {
+      const keyId = 'rzp_test_R7Swkdhjyig54S';
+      const keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+      
+      final authString = base64Encode(utf8.encode('$keyId:$keySecret'));
+      final response = await http.get(
+        Uri.parse('https://api.razorpay.com/v1/orders/$orderId/payments'),
+        headers: {'Authorization': 'Basic $authString'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final items = data['items'] as List;
+        
+        if (items.isNotEmpty) {
+          final payment = items.first;
+          if (payment['status'] == 'captured') {
+            log('Pending payment verified as captured: ${payment['id']}');
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      log('Error verifying pending payment: $e');
+    }
+    return false;
+  }
+
+  Future<void> _callSetPaymentApi({
+    required String refNo,
+    required String subsUserId,
+    required String subscriptionId,
+    required String transactionId,
+  }) async {
+    try {
+      await setPaymentController.setPayment(
+        refNo: refNo,
+        subsUserid: subsUserId,
+        context: context,
+        subscriptionid: subscriptionId,
+        paymentStaus: "1",
+        transactionID: transactionId,
+      );
+      log('SetPayment API called successfully');
+    } catch (e) {
+      log('Error calling setPayment API: $e');
+    }
+  }
+
+  Future<void> _clearPendingOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pending_order_id');
+    await prefs.remove('pending_subscription_id');
+    await prefs.remove('pending_transaction_id');
+    await prefs.remove('pending_amount');
+    await prefs.remove('pending_ref_no');
+    await prefs.remove('pending_subs_user_id');
+    log('Cleared pending order data');
   }
 
   @override

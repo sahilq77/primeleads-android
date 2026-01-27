@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:prime_leads/model/subscription/get_subscription_response.dart';
 import 'package:prime_leads/utility/app_routes.dart';
 import 'package:prime_leads/utility/app_utility.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../controller/subscription/set_payment_controller.dart';
 
 class RazorpayGateway extends StatefulWidget {
@@ -33,12 +34,12 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   final SetOrderController setOrderController = Get.put(SetOrderController());
 
   // Test Credentials (Replace with production credentials as needed)
-  // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
-  // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+  final String _keyId = 'rzp_test_R7Swkdhjyig54S';
+  final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
   // live Credentials
-  final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
-  final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
+  // final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
+  // final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
 
   String transactionId = "RT${DateTime.now().millisecondsSinceEpoch}";
   String? _currentOrderId;
@@ -155,10 +156,39 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
 
       // Store orderId for payment verification
       _currentOrderId = orderId;
+      _storePendingOrder(orderId);
     } catch (e) {
       _log('[RazorpayGateway] Error opening Razorpay checkout: $e');
       _showErrorSnackBar('Error opening checkout: $e');
     }
+  }
+
+  Future<void> _storePendingOrder(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pending_order_id', orderId);
+    await prefs.setString('pending_subscription_id', widget.subscriptionId);
+    await prefs.setString('pending_transaction_id', transactionId);
+    await prefs.setDouble('pending_amount', widget.finalOrderPrice.toDouble());
+    await prefs.setString(
+      'pending_ref_no',
+      setOrderController.setOrderList.first.refNo ?? "",
+    );
+    await prefs.setString(
+      'pending_subs_user_id',
+      setOrderController.setOrderList.first.id ?? "",
+    );
+    _log('[RazorpayGateway] Stored pending order: $orderId');
+  }
+
+  Future<void> _clearPendingOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pending_order_id');
+    await prefs.remove('pending_subscription_id');
+    await prefs.remove('pending_transaction_id');
+    await prefs.remove('pending_amount');
+    await prefs.remove('pending_ref_no');
+    await prefs.remove('pending_subs_user_id');
+    _log('[RazorpayGateway] Cleared pending order data');
   }
 
   Future<bool> _callSetPaymentApi(String paymentStatus) async {
@@ -211,6 +241,7 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
             if (!_paymentProcessed) {
               _paymentProcessed = true;
               await _callSetPaymentApi("1");
+              await _clearPendingOrder();
 
               Get.offNamed(
                 AppRoutes.paymentRieceipt,
@@ -249,15 +280,14 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
       _log('[RazorpayGateway] paymentStatus: 1');
 
       bool apiSuccess = await _callSetPaymentApi("1");
+      await _clearPendingOrder();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Get.offNamed(
-          AppRoutes.paymentRieceipt,
+          AppRoutes.selectLocation,
           arguments: {
-            'transactionId': transactionId,
-            'subscriptionId': widget.subscriptionId,
-            'amount': widget.finalOrderPrice,
-            'paymentId': response.paymentId,
+            'subscription_id': widget.subscriptionId,
+            'transaction': transactionId,
           },
         );
       });

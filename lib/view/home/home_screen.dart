@@ -65,8 +65,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final setPaymentController = Get.put(SetPaymentController());
 
   dynamic _currentPlayingVideo;
+  dynamic _currentPlayingTestimonial;
 
-  VideoPlayerController? _videoController; // Nullable to prevent late error
+  VideoPlayerController? _videoController; // For banner videos
+  VideoPlayerController? _testimonialVideoController; // For testimonial videos
   bool _hasError = false;
   double _scale = 1.0; // Initial zoom scale
   final double _minScale = 1.0; // Minimum zoom level
@@ -88,6 +90,24 @@ class _HomeScreenState extends State<HomeScreen> {
         _hasError = true;
       });
       print('Error initializing video: $error');
+    }
+  }
+
+  Future<void> playTestimonialVideo(String url) async {
+    // Dispose existing controller if any
+    _testimonialVideoController?.dispose();
+    _testimonialVideoController = VideoPlayerController.network(url);
+    try {
+      await _testimonialVideoController!.initialize();
+      setState(() {
+        _hasError = false;
+        _testimonialVideoController!.play(); // Autoplay after initialization
+      });
+    } catch (error) {
+      setState(() {
+        _hasError = true;
+      });
+      print('Error initializing testimonial video: $error');
     }
   }
 
@@ -337,6 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _videoController?.dispose();
+    _testimonialVideoController?.dispose();
     super.dispose();
   }
 
@@ -1125,14 +1146,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     .replaceAll(r'\/', '/')
                                     .replaceAll(r'\:', ':'),
                               );
-                              await playVideo(
+                              await playTestimonialVideo(
                                 testimonialController
                                     .testimonialList[index]
                                     .testimonialVideo
                                     .replaceAll(r'\/', '/')
                                     .replaceAll(r'\:', ':'),
                               );
-                              if (_videoController == null || _hasError) return;
+                              if (_testimonialVideoController == null ||
+                                  _hasError)
+                                return;
                               await showDialog(
                                 barrierDismissible: false,
                                 context: context,
@@ -1141,12 +1164,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       builder: (context, setStateDialog) {
                                         void listener() {
                                           if (context.mounted &&
-                                              _videoController != null) {
+                                              _testimonialVideoController !=
+                                                  null) {
                                             setStateDialog(() {});
                                           }
                                         }
 
-                                        _videoController!.addListener(listener);
+                                        _testimonialVideoController!
+                                            .addListener(listener);
                                         return Dialog(
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(
@@ -1155,9 +1180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           child: WillPopScope(
                                             onWillPop: () async {
-                                              _videoController?.removeListener(
-                                                listener,
-                                              );
+                                              _testimonialVideoController
+                                                  ?.removeListener(listener);
                                               return true;
                                             },
                                             child: Column(
@@ -1165,22 +1189,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                               children: [
                                                 ValueListenableBuilder(
                                                   valueListenable:
-                                                      _videoController!,
+                                                      _testimonialVideoController!,
                                                   builder: (
                                                     context,
                                                     value,
                                                     child,
                                                   ) {
-                                                    return _videoController!
+                                                    return _testimonialVideoController!
                                                             .value
                                                             .isInitialized
                                                         ? AspectRatio(
                                                           aspectRatio:
-                                                              _videoController!
+                                                              _testimonialVideoController!
                                                                   .value
                                                                   .aspectRatio,
                                                           child: VideoPlayer(
-                                                            _videoController!,
+                                                            _testimonialVideoController!,
                                                           ),
                                                         )
                                                         : Container(
@@ -1209,7 +1233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     _,
                                                                   ) => FullScreenVideoView(
                                                                     controller:
-                                                                        _videoController!,
+                                                                        _testimonialVideoController!,
                                                                   ),
                                                             ),
                                                           );
@@ -1223,19 +1247,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       child: IconButton(
                                                         onPressed: () {
                                                           setStateDialog(() {
-                                                            if (_videoController!
+                                                            if (_testimonialVideoController!
                                                                 .value
                                                                 .isPlaying) {
-                                                              _videoController!
+                                                              _testimonialVideoController!
                                                                   .pause();
                                                             } else {
-                                                              _videoController!
+                                                              _testimonialVideoController!
                                                                   .play();
                                                             }
                                                           });
                                                         },
                                                         icon: Icon(
-                                                          _videoController!
+                                                          _testimonialVideoController!
                                                                   .value
                                                                   .isPlaying
                                                               ? Icons.pause
@@ -1247,11 +1271,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Expanded(
                                                       child: IconButton(
                                                         onPressed: () {
-                                                          _videoController
+                                                          _testimonialVideoController
                                                               ?.removeListener(
                                                                 listener,
                                                               );
-                                                          _videoController!
+                                                          _testimonialVideoController!
                                                               .pause();
                                                           Navigator.of(
                                                             context,
@@ -1403,7 +1427,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child:
           _videoController != null &&
                   _videoController!.value.isInitialized &&
-                  bannerVideo == _currentPlayingVideo
+                  bannerVideo == _currentPlayingVideo &&
+                  _videoController!.value.isPlaying
               ? ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Stack(

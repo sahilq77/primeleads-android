@@ -96,7 +96,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             );
           });
           cityController
-              .fetchCities(context: context, forceFetch: true, stateID: stateId!)
+              .fetchCities(
+                context: context,
+                forceFetch: true,
+                stateID: stateId!,
+              )
               .then((_) {
                 final cityName = cityController.getCityNameById(cityId!);
                 print("City name for cityId $cityId: $cityName");
@@ -230,29 +234,29 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                                   ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap:
-                            () => showEditProfileImageBottomSheet(
-                              context,
-                              controller,
-                            ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE5E7EB),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          padding: const EdgeInsets.all(5),
-                          child: ClipOval(
-                            child: SvgPicture.asset(
-                              AppImages.editIcon,
-                              width: 15,
-                              height: 15,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
+                      // GestureDetector(
+                      //   onTap:
+                      //       () => showEditProfileImageBottomSheet(
+                      //         context,
+                      //         controller,
+                      //       ),
+                      //   child: Container(
+                      //     decoration: BoxDecoration(
+                      //       color: const Color(0xFFE5E7EB),
+                      //       shape: BoxShape.circle,
+                      //       border: Border.all(color: Colors.white, width: 2),
+                      //     ),
+                      //     padding: const EdgeInsets.all(5),
+                      //     child: ClipOval(
+                      //       child: SvgPicture.asset(
+                      //         AppImages.editIcon,
+                      //         width: 15,
+                      //         height: 15,
+                      //         fit: BoxFit.cover,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

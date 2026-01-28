@@ -1306,6 +1306,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _videoController == null || !_videoController!.value.isPlaying,
             enlargeCenterPage: true,
             viewportFraction: 1.0,
+            height: 180,
             onPageChanged: (index, reason) {
               setState(() {
                 _current = index;
@@ -1323,11 +1324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child:
                             item.runtimeType.toString().contains('BannerVideo')
-                                ? (_videoController != null &&
-                                        _videoController!.value.isInitialized &&
-                                        item == _currentPlayingVideo)
-                                    ? _buildVideoPlayer(item)
-                                    : _buildVideoThumbnail(item)
+                                ? _buildVideoPlayer(item)
                                 : CachedNetworkImage(
                                   imageUrl: item.bannerImage,
                                   fit: BoxFit.fitWidth,
@@ -1400,71 +1397,122 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildVideoPlayer(dynamic bannerVideo) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
+      height: 180,
       child:
-          _videoController != null && _videoController!.value.isInitialized
-              ? Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
+          _videoController != null &&
+                  _videoController!.value.isInitialized &&
+                  bannerVideo == _currentPlayingVideo
+              ? ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  children: [
+                    SizedBox(
                       width: double.infinity,
-                      height: 200,
+                      height: 180,
                       child: VideoPlayer(_videoController!),
                     ),
-                  ),
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (_videoController!.value.isPlaying) {
-                            _videoController!.pause();
-                          } else {
-                            _videoController!.play();
-                          }
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _videoController!.value.isPlaying
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 30,
+                    Positioned.fill(
+                      child: Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_videoController!.value.isPlaying) {
+                                _videoController!.pause();
+                              } else {
+                                _videoController!.play();
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _videoController!.value.isPlaying
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _videoController?.dispose();
-                          _videoController = null;
-                          _currentPlayingVideo = null;
-                        });
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.close, color: Colors.white, size: 20),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               )
-              : Center(child: CircularProgressIndicator()),
+              : GestureDetector(
+                onTap: () async {
+                  String videoUrl = bannerVideo.bannerVideo
+                      .replaceAll(r'\/', '/')
+                      .replaceAll(r'\:', ':');
+                  setState(() {
+                    _currentPlayingVideo = bannerVideo;
+                  });
+                  await playVideo(videoUrl);
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 180,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: bannerVideo.thumbnail,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 180,
+                          placeholder:
+                              (context, url) => Container(
+                                width: double.infinity,
+                                height: 180,
+                                color: Colors.grey[300],
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Container(
+                                width: double.infinity,
+                                height: 180,
+                                color: Colors.grey[300],
+                                child: Center(
+                                  child: Icon(
+                                    Icons.error,
+                                    color: AppColors.error,
+                                    size: 50,
+                                  ),
+                                ),
+                              ),
+                        ),
+                        Center(
+                          child: Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.play_arrow,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
     );
   }
 
@@ -1663,7 +1711,7 @@ Widget _bannerShimmerEffect() {
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        height: 197,
+        height: 180,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.grey[300],

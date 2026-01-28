@@ -34,12 +34,12 @@ class _RazorpayGatewayState extends State<RazorpayGateway> {
   final SetOrderController setOrderController = Get.put(SetOrderController());
 
   // Test Credentials (Replace with production credentials as needed)
-  final String _keyId = 'rzp_test_R7Swkdhjyig54S';
-  final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+  // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
+  // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
 
   // live Credentials
-  // final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
-  // final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
+  final String _keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
+  final String _keySecret = 'uJvnRhRllfqNuqqticemkVKX';
 
   String transactionId = "RT${DateTime.now().millisecondsSinceEpoch}";
   String? _currentOrderId;

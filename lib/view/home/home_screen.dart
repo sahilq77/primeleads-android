@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Check for pending payments on app startup
       _checkPendingPayments();
-      
+
       leadsController.fetchleadsList(context: context);
       notificationServices.firebaseInit(context);
       notificationServices.setInteractMessage(context);
@@ -125,6 +125,114 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _showPendingPaymentSuccessDialog(
+    String subscriptionId,
+    String transactionId,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (context, setState) => Dialog(
+                  backgroundColor: Color(0xFFF8F8F8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Container(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundColor: Colors.transparent,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.green,
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 40,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Payment Successful!',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Your payment has been processed successfully.',
+                            style: TextStyle(fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            'Transaction ID: $transactionId',
+                            style: TextStyle(fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    Get.offNamed(
+                                      AppRoutes.selectLocation,
+                                      arguments: {
+                                        'subscription_id': subscriptionId,
+                                        'transaction': transactionId,
+                                      },
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 50,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'Continue',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+          ),
+    );
+  }
+
   Future<void> _checkPendingPayments() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -133,14 +241,16 @@ class _HomeScreenState extends State<HomeScreen> {
       final pendingTransactionId = prefs.getString('pending_transaction_id');
       final pendingRefNo = prefs.getString('pending_ref_no');
       final pendingSubsUserId = prefs.getString('pending_subs_user_id');
-      
+
       if (pendingOrderId != null && pendingSubscriptionId != null) {
         log('Found pending payment: $pendingOrderId');
-        
+
         // Verify payment status
         bool isPaymentCaptured = await _verifyPendingPayment(pendingOrderId);
-        
-        if (isPaymentCaptured && pendingRefNo != null && pendingSubsUserId != null) {
+
+        if (isPaymentCaptured &&
+            pendingRefNo != null &&
+            pendingSubsUserId != null) {
           // Call setPayment API
           await _callSetPaymentApi(
             refNo: pendingRefNo,
@@ -148,17 +258,16 @@ class _HomeScreenState extends State<HomeScreen> {
             subscriptionId: pendingSubscriptionId,
             transactionId: pendingTransactionId ?? '',
           );
-          
-          // Clear pending data and redirect to city selection
+
+          // Clear pending data and show success dialog
           await _clearPendingOrder();
-          
-          Get.offNamed(
-            AppRoutes.selectLocation,
-            arguments: {
-              'subscription_id': pendingSubscriptionId,
-              'transaction': pendingTransactionId,
-            },
-          );
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showPendingPaymentSuccessDialog(
+              pendingSubscriptionId,
+              pendingTransactionId ?? '',
+            );
+          });
         }
       }
     } catch (e) {
@@ -168,9 +277,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<bool> _verifyPendingPayment(String orderId) async {
     try {
-      const keyId = 'rzp_test_R7Swkdhjyig54S';
-      const keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
-      
+      // Test Credentials (Replace with production credentials as needed)
+      // final String _keyId = 'rzp_test_R7Swkdhjyig54S';
+      // final String _keySecret = 'jS36wByFlnpeVgyEicfK2AFb';
+
+      // live Credentials
+      final String keyId = 'rzp_live_R7zacfGtzhXGgs'; //live
+      final String keySecret = 'uJvnRhRllfqNuqqticemkVKX';
+
       final authString = base64Encode(utf8.encode('$keyId:$keySecret'));
       final response = await http.get(
         Uri.parse('https://api.razorpay.com/v1/orders/$orderId/payments'),
@@ -180,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final items = data['items'] as List;
-        
+
         if (items.isNotEmpty) {
           final payment = items.first;
           if (payment['status'] == 'captured') {

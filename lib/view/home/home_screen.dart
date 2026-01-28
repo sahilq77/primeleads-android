@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:prime_leads/controller/app_banner/app_banner_video_controller.dart';
 import 'package:prime_leads/controller/global_controller.dart/set_device_details_controller.dart';
 import 'package:prime_leads/controller/home/home_controller.dart';
 import 'package:prime_leads/controller/profile/profile_controller.dart';
@@ -52,6 +53,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final bottomController = Get.put(BottomNavigationController());
+  final appbannerVideoController = Get.put(AppBannerVideoController());
   final appbannerController = Get.put(AppBannerController());
   final homeController = Get.put(HomeController());
   final whyprimeleadsController = Get.put(WhyprimeleadsController());
@@ -61,18 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final leadsController = Get.put(GetLeadsController());
   final setDeviceDetailController = Get.put(SetDeviceDetailsController());
   final setPaymentController = Get.put(SetPaymentController());
-  final List<Map<String, String>> testimonials = [
-    {
-      'title': 'Digital Agency',
-      'subtitle': 'Innovative for your business',
-      'image': 'assets/testimonial1.jpg', // Placeholder
-    },
-    {
-      'title': 'CRM',
-      'subtitle': 'Management',
-      'image': 'assets/testimonial2.jpg', // Placeholder
-    },
-  ];
+
+  dynamic _currentPlayingVideo;
+
   VideoPlayerController? _videoController; // Nullable to prevent late error
   bool _hasError = false;
   double _scale = 1.0; // Initial zoom scale
@@ -106,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Check for pending payments on app startup
       _checkPendingPayments();
-
+      appbannerVideoController.fetchBannerVideos(context: context);
       leadsController.fetchleadsList(context: context);
       notificationServices.firebaseInit(context);
       notificationServices.setInteractMessage(context);
@@ -594,11 +587,18 @@ class _HomeScreenState extends State<HomeScreen> {
               testimonialController.testimonialList.isEmpty;
 
           return RefreshIndicator(
-            onRefresh:
-                () => homeController.refreshAllData(
-                  context: context,
-                  token: pushtoken.value,
-                ),
+            onRefresh: () async {
+              // Reset video state before refresh
+              setState(() {
+                _videoController?.dispose();
+                _videoController = null;
+                _currentPlayingVideo = null;
+              });
+              return homeController.refreshAllData(
+                context: context,
+                token: pushtoken.value,
+              );
+            },
             child:
                 isAllDataEmpty
                     ? SingleChildScrollView(
@@ -732,7 +732,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children:
-                                appbannerController.bannerImagesList
+                                (appbannerVideoController.bannerVideoList)
                                     .asMap()
                                     .entries
                                     .map((entry) {
@@ -1283,18 +1283,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBannerCarousel(AppBannerController appbannerController) {
-    double _smallPadding = 16.0;
     return Obx(() {
-      if (appbannerController.isLoading.value &&
-          appbannerController.bannerImagesList.isEmpty) {
+      if (appbannerVideoController.isLoading.value &&
+          appbannerVideoController.bannerVideoList.isEmpty) {
         return _bannerShimmerEffect();
       }
+
+      // Combine images and videos
+      List<dynamic> allBannerItems = [];
+      // allBannerItems.addAll(appbannerController.bannerImagesList);
+      allBannerItems.addAll(appbannerVideoController.bannerVideoList);
+
+      if (allBannerItems.isEmpty) {
+        return _bannerShimmerEffect();
+      }
+
       return Padding(
         padding: const EdgeInsets.all(10.0),
         child: CarouselSlider(
           options: CarouselOptions(
-            // height: 200,
-            autoPlay: true,
+            autoPlay:
+                _videoController == null || !_videoController!.value.isPlaying,
             enlargeCenterPage: true,
             viewportFraction: 1.0,
             onPageChanged: (index, reason) {
@@ -1304,7 +1313,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           items:
-              appbannerController.bannerImagesList.value.map((imagePath) {
+              allBannerItems.map((item) {
                 return Builder(
                   builder: (BuildContext context) {
                     return Container(
@@ -1312,24 +1321,30 @@ class _HomeScreenState extends State<HomeScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl: imagePath.bannerImage,
-                          fit: BoxFit.fitWidth,
-                          width: double.infinity,
-                          //height: 200,
-                          placeholder:
-                              (context, url) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                          errorWidget:
-                              (context, url, error) => const Center(
-                                child: Icon(
-                                  Icons.error,
-                                  color: AppColors.error,
-                                  size: 50,
+                        child:
+                            item.runtimeType.toString().contains('BannerVideo')
+                                ? (_videoController != null &&
+                                        _videoController!.value.isInitialized &&
+                                        item == _currentPlayingVideo)
+                                    ? _buildVideoPlayer(item)
+                                    : _buildVideoThumbnail(item)
+                                : CachedNetworkImage(
+                                  imageUrl: item.bannerImage,
+                                  fit: BoxFit.fitWidth,
+                                  width: double.infinity,
+                                  placeholder:
+                                      (context, url) => const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                  errorWidget:
+                                      (context, url, error) => const Center(
+                                        child: Icon(
+                                          Icons.error,
+                                          color: AppColors.error,
+                                          size: 50,
+                                        ),
+                                      ),
                                 ),
-                              ),
-                        ),
                       ),
                     );
                   },
@@ -1338,6 +1353,119 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     });
+  }
+
+  Widget _buildVideoThumbnail(dynamic bannerVideo) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CachedNetworkImage(
+          imageUrl: bannerVideo.thumbnail,
+          fit: BoxFit.fitWidth,
+          width: double.infinity,
+          placeholder:
+              (context, url) =>
+                  const Center(child: CircularProgressIndicator()),
+          errorWidget:
+              (context, url, error) => const Center(
+                child: Icon(Icons.error, color: AppColors.error, size: 50),
+              ),
+        ),
+        GestureDetector(
+          onTap: () async {
+            String videoUrl = bannerVideo.bannerVideo
+                .replaceAll(r'\/', '/')
+                .replaceAll(r'\:', ':');
+            setState(() {
+              _currentPlayingVideo = bannerVideo;
+            });
+            await playVideo(videoUrl);
+          },
+          child: Center(
+            child: Container(
+              height: 50,
+              width: 50,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(Icons.play_arrow, color: Colors.white, size: 30),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVideoPlayer(dynamic bannerVideo) {
+    return Container(
+      width: double.infinity,
+      child:
+          _videoController != null && _videoController!.value.isInitialized
+              ? Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: double.infinity,
+                      height: 200,
+                      child: VideoPlayer(_videoController!),
+                    ),
+                  ),
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (_videoController!.value.isPlaying) {
+                            _videoController!.pause();
+                          } else {
+                            _videoController!.play();
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _videoController!.value.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _videoController?.dispose();
+                          _videoController = null;
+                          _currentPlayingVideo = null;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.close, color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : Center(child: CircularProgressIndicator()),
+    );
   }
 
   Widget _cardtestimonial(String imagesUrl, VoidCallback press) {

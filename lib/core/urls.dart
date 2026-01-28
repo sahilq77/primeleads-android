@@ -79,7 +79,11 @@ class Networkutility {
 
   static String setDeviceDetails = "${baseUrl + "save_device_info"}";
   static int setDeviceDetailsApi = 36;
+
+  static String getBannerVideo = "${baseUrl + "banner_video"}";
+  static int getBannerVideoApi = 37;
 }
+
 
 
 

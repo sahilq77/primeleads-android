@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:prime_leads/controller/app_banner/app_banner_controller.dart';
+import 'package:prime_leads/controller/app_banner/app_banner_video_controller.dart';
 import 'package:prime_leads/controller/smarter_lead/smarter_lead_controller.dart';
 import 'package:prime_leads/controller/whyprimeleads/whyprimeleads_controller.dart';
 
@@ -14,6 +15,7 @@ import '../testimonial/testimonial_controller.dart';
 
 class HomeController extends GetxController {
   final appbanner = Get.put(AppBannerController());
+  final appbannerVideo = Get.put(AppBannerVideoController());
   final whyprimeleads = Get.put(WhyprimeleadsController());
   final smartlead = Get.put(SmarterLeadController());
   final testimonial = Get.put(TestimonialController());
@@ -31,6 +33,7 @@ class HomeController extends GetxController {
     try {
       // Reset all lists
       appbanner.bannerImagesList.clear();
+      appbannerVideo.bannerVideoList.clear();
       whyprimeleads.whyprimeList.clear();
       smartlead.smarterList.clear();
       testimonial.testimonialList.clear();
@@ -42,6 +45,7 @@ class HomeController extends GetxController {
       // Set loading states
       if (showLoading) {
         appbanner.isLoading.value = true;
+        appbannerVideo.isLoading.value = true;
         whyprimeleads.isLoading.value = true;
         smartlead.isLoading.value = true;
         testimonial.isLoading.value = true;
@@ -55,6 +59,11 @@ class HomeController extends GetxController {
           reset: true,
           forceFetch: true,
           token: token,
+        ),
+        appbannerVideo.fetchBannerVideos(
+          context: context,
+          reset: true,
+          forceFetch: true,
         ),
         whyprimeleads.fetchwhyprimeleads(
           context: context,

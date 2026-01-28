@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:prime_leads/core/network/exceptions.dart';
+import 'package:prime_leads/model/app_banner/get_banner_viedo_response.dart';
 import 'package:prime_leads/model/global_model/get_city_response.dart';
 import 'package:prime_leads/model/set_device_details/get_set_device_detail_response.dart';
 import 'package:prime_leads/model/subscription/get_subscription_response.dart'
@@ -215,6 +216,9 @@ class Networkcall {
             final setDeviceDetail = setDeviceDetailResponseFromJson(str);
             return setDeviceDetail;
 
+          case 37:
+            final getBannerVideo = getBannerVideoResponseFromJson(str);
+            return getBannerVideo;
           default:
             log("Invalid request code: $requestCode");
             throw ParseException('Unhandled request code: $requestCode');

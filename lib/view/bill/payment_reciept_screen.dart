@@ -63,31 +63,30 @@ class _PaymentRecieptScreenState extends State<PaymentRecieptScreen> {
   Future<bool> _requestStoragePermissions() async {
     if (Platform.isAndroid) {
       bool isAndroid13OrAbove = await _isAndroid13OrAbove();
-      PermissionStatus status;
 
       if (isAndroid13OrAbove) {
-        // For Android 13+ (API 33+), request READ_MEDIA_IMAGES
-        status = await Permission.photos.request();
+        // For Android 13+ (API 33+), no special permission needed for Downloads folder
+        return true;
       } else {
         // For older Android versions, request storage permission
-        status = await Permission.storage.request();
-      }
+        PermissionStatus status = await Permission.storage.request();
 
-      if (status.isGranted) {
-        return true;
-      } else if (status.isPermanentlyDenied) {
-        Fluttertoast.showToast(
-          msg: "Please enable storage permission in settings",
-          toastLength: Toast.LENGTH_LONG,
-        );
-        await openAppSettings();
-        return false;
-      } else {
-        Fluttertoast.showToast(
-          msg: "Storage permission denied",
-          toastLength: Toast.LENGTH_LONG,
-        );
-        return false;
+        if (status.isGranted) {
+          return true;
+        } else if (status.isPermanentlyDenied) {
+          Fluttertoast.showToast(
+            msg: "Please enable storage permission in settings",
+            toastLength: Toast.LENGTH_LONG,
+          );
+          await openAppSettings();
+          return false;
+        } else {
+          Fluttertoast.showToast(
+            msg: "Storage permission denied",
+            toastLength: Toast.LENGTH_LONG,
+          );
+          return false;
+        }
       }
     }
     return true; // No permission needed for iOS or other platforms
@@ -266,8 +265,10 @@ class _PaymentRecieptScreenState extends State<PaymentRecieptScreen> {
                     ),
                     const SizedBox(height: 20),
                     const SizedBox(height: 16),
-                     Text(
-                     sub!.payment == "1"?  'Payment Success!!':'Payment Failed!!',
+                    Text(
+                      sub!.payment == "1"
+                          ? 'Payment Success!!'
+                          : 'Payment Failed!!',
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w500,

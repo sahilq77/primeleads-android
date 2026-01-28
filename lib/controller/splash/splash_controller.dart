@@ -27,22 +27,8 @@ class SplashController extends GetxController {
     bool isAndroid12OrAbove = await _isAndroid12OrAbove();
 
     // Check which runtime permissions need to be requested
-    if (await Permission.camera.isDenied) {
-      permissionsToRequest.add(Permission.camera);
-    }
     if (await Permission.notification.isDenied) {
       permissionsToRequest.add(Permission.notification);
-    }
-    if (Platform.isAndroid && isAndroid13OrAbove) {
-      // if (await Permission.photos.isDenied) {
-      //   permissionsToRequest.add(Permission.photos); // For READ_MEDIA_IMAGES
-      // }
-    } else if (Platform.isAndroid && await Permission.storage.isDenied) {
-      permissionsToRequest.add(
-        Permission.storage,
-      ); // For WRITE_EXTERNAL_STORAGE
-    } else if (Platform.isIOS && await Permission.photos.isDenied) {
-      permissionsToRequest.add(Permission.photos);
     }
     if (Platform.isAndroid && isAndroid12OrAbove) {
       if (await Permission.scheduleExactAlarm.isDenied) {
@@ -86,19 +72,6 @@ class SplashController extends GetxController {
       Map<Permission, PermissionStatus> statuses =
           await permissionsToRequest.request();
 
-      if (statuses[Permission.camera]?.isDenied ?? false) {
-        deniedMessage += 'Camera access is needed to take photos.\n';
-        hasDeniedPermissions = true;
-      }
-      if (statuses[Permission.photos]?.isDenied ?? false) {
-        deniedMessage +=
-            'Gallery access is needed to upload images and save receipts.\n';
-        hasDeniedPermissions = true;
-      }
-      if (statuses[Permission.storage]?.isDenied ?? false) {
-        deniedMessage += 'Storage access is needed to save files.\n';
-        hasDeniedPermissions = true;
-      }
       if (statuses[Permission.notification]?.isDenied ?? false) {
         deniedMessage += 'Notification access is needed to send alerts.\n';
         hasDeniedPermissions = true;

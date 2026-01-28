@@ -177,7 +177,7 @@ class SplashController extends GetxController {
 
     // Navigate after permission handling
     await Future.delayed(const Duration(seconds: 2));
-    Get.offNamed(AppUtility.isLoggedIn ? AppRoutes.home : AppRoutes.welcome);
+    Get.offNamed(AppUtility.isLoggedIn ? AppRoutes.home : AppRoutes.login);
   }
 
   // Helper method to check Android version (API 33+ for READ_MEDIA_IMAGES)
